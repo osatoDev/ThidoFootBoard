@@ -123,7 +123,7 @@ const moreFormations: FormationName[] = [
 const CURRENT_STORAGE_KEY = "thido-lineup-builder-current";
 const SAVED_STORAGE_KEY = "thido-lineup-builder-saved";
 
-const samplePlayers: Player[] = [
+const oldSamplePlayers: Player[] = [
   { name: "Aaron Ramsdale", number: "1" },
   { name: "Ben White", number: "4" },
   { name: "William Saliba", number: "2" },
@@ -137,7 +137,7 @@ const samplePlayers: Player[] = [
   { name: "Gabriel Martinelli", number: "11" },
 ];
 
-const initialSubstitutes: Player[] = [
+const oldSampleSubstitutes: Player[] = [
   { name: "David Raya", number: "22" },
   { name: "Jorginho", number: "20" },
   { name: "Leandro Trossard", number: "19" },
@@ -294,6 +294,38 @@ function normalizePlayers(players: Player[]) {
   }));
 }
 
+function hasPlayerDetails(player: Player) {
+  return player.name.trim().length > 0 || player.number.trim().length > 0;
+}
+
+function isSamePlayerList(players: Player[] | undefined, comparison: Player[]) {
+  if (!players || players.length !== comparison.length) {
+    return false;
+  }
+
+  return players.every(
+    (player, index) => player.name === comparison[index].name && player.number === comparison[index].number,
+  );
+}
+
+function createEmptyLineup(): CurrentLineup {
+  return {
+    formation: "4-3-3",
+    players: createEmptyPlayers(),
+    substitutes: [],
+    pitchTheme: "classic",
+    playerBadges: true,
+  };
+}
+
+function isOldSampleLineup(lineup: Partial<CurrentLineup>) {
+  return (
+    lineup.formation === "4-3-3" &&
+    isSamePlayerList(lineup.players, oldSamplePlayers) &&
+    isSamePlayerList(lineup.substitutes, oldSampleSubstitutes)
+  );
+}
+
 function loadCurrentLineup(): CurrentLineup {
   try {
     const raw = window.localStorage.getItem(CURRENT_STORAGE_KEY);
@@ -302,6 +334,10 @@ function loadCurrentLineup(): CurrentLineup {
     }
 
     const parsed = JSON.parse(raw) as Partial<CurrentLineup>;
+    if (isOldSampleLineup(parsed)) {
+      throw new Error("Stored lineup is the old sample");
+    }
+
     const parsedFormation = parsed.formation;
     const formation: FormationName =
       parsedFormation && Object.prototype.hasOwnProperty.call(formations, parsedFormation)
@@ -310,19 +346,13 @@ function loadCurrentLineup(): CurrentLineup {
 
     return {
       formation,
-      players: normalizePlayers(parsed.players ?? samplePlayers),
-      substitutes: parsed.substitutes ?? initialSubstitutes,
+      players: normalizePlayers(parsed.players ?? createEmptyPlayers()),
+      substitutes: parsed.substitutes ?? [],
       pitchTheme: parsed.pitchTheme === "dark" ? "dark" : "classic",
       playerBadges: parsed.playerBadges ?? true,
     };
   } catch {
-    return {
-      formation: "4-3-3",
-      players: samplePlayers,
-      substitutes: initialSubstitutes,
-      pitchTheme: "classic",
-      playerBadges: true,
-    };
+    return createEmptyLineup();
   }
 }
 
@@ -442,11 +472,11 @@ function App() {
   const [draggingPlayerIndex, setDraggingPlayerIndex] = useState<number | null>(null);
   const [editorTab, setEditorTab] = useState<EditorTab>("starting");
   const [savedLineups, setSavedLineups] = useState<SavedLineup[]>(loadSavedLineups);
-  const [lineupName, setLineupName] = useState("Arsenal 4-3-3");
+  const [lineupName, setLineupName] = useState("");
   const [selectedSavedId, setSelectedSavedId] = useState("");
   const [matchDate, setMatchDate] = useState(todayInputValue);
-  const [teamA, setTeamA] = useState("Arsenal");
-  const [teamB, setTeamB] = useState("Tottenham");
+  const [teamA, setTeamA] = useState("");
+  const [teamB, setTeamB] = useState("");
   const [matchResults, setMatchResults] = useState<MatchSummary[]>([]);
   const [selectedMatchId, setSelectedMatchId] = useState<number | null>(null);
   const [matchImportStatus, setMatchImportStatus] = useState("");
@@ -570,11 +600,11 @@ function App() {
 
   function resetAll() {
     setFormation("4-3-3");
-    setPlayers(samplePlayers);
-    setSubstitutes(initialSubstitutes);
+    setPlayers(createEmptyPlayers());
+    setSubstitutes([]);
     setPitchTheme("classic");
     setPlayerBadges(true);
-    setLineupName("Arsenal 4-3-3");
+    setLineupName("");
     setSelectedPlayerIndex(null);
     setSelectedSavedId("");
   }
@@ -945,6 +975,10 @@ function App() {
     context.textBaseline = "middle";
 
     players.forEach((player, index) => {
+      if (!hasPlayerDetails(player)) {
+        return;
+      }
+
       const position = positionSet[index];
       const x = ((player.customX ?? position.x) / 100) * width;
       const y = ((player.customY ?? position.y) / 100) * height;
@@ -1083,6 +1117,10 @@ function App() {
             <div className="pitchLine corner bottomRight" />
 
             {players.map((player, index) => {
+              if (!hasPlayerDetails(player)) {
+                return null;
+              }
+
               const position = positionSet[index];
               const x = player.customX ?? position.x;
               const y = player.customY ?? position.y;
