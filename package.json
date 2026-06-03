@@ -1,0 +1,35 @@
+{
+  "name": "thido-lineup-builder",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "dev:frontend": "vite --host 127.0.0.1 --port 5174",
+    "dev:backend": "tsx watch backend/server.ts",
+    "dev:all": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "build": "tsc -b && vite build",
+    "build:backend": "tsc --noEmit -p tsconfig.backend.json",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "lucide-react": "^0.468.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/node": "^25.9.1",
+    "@types/react": "^18.3.18",
+    "@types/react-dom": "^18.3.5",
+    "@vitejs/plugin-react": "^4.3.4",
+    "concurrently": "^10.0.3",
+    "tsx": "^4.22.4",
+    "typescript": "^5.7.2",
+    "vite": "^6.4.2"
+  }
+}
