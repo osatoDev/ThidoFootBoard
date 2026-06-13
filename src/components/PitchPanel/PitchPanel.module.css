@@ -1,0 +1,495 @@
+.pitchPanel {
+  position: relative;
+  justify-self: stretch;
+  overflow: hidden;
+  width: 100%;
+  height: var(--desktop-content-height);
+  aspect-ratio: auto;
+  min-height: 0;
+  border-radius: 20px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent 28%),
+    linear-gradient(135deg, #135e26, #2f8b35);
+  box-shadow: 0 26px 70px rgba(10, 64, 37, 0.26);
+}
+
+.pitchPanel.dark {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 34%),
+    linear-gradient(135deg, #061711, #123a22);
+}
+
+.pitchPanel::before {
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(255, 255, 255, 0.045) 0,
+    rgba(255, 255, 255, 0.045) 70px,
+    rgba(0, 0, 0, 0.035) 70px,
+    rgba(0, 0, 0, 0.035) 140px
+  );
+  content: "";
+}
+
+.pitchToolbar {
+  position: absolute;
+  top: 18px;
+  left: 22px;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.selectWrap {
+  position: relative;
+  display: block;
+}
+
+.selectWrap select {
+  width: 100%;
+  min-width: 184px;
+  min-height: 38px;
+  appearance: none;
+  padding: 0 42px 0 18px;
+  border: 1px solid #d5dce0;
+  border-radius: 8px;
+  color: #111827;
+  background: #ffffff;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.04);
+  font-weight: 650;
+}
+
+.selectWrap svg {
+  position: absolute;
+  top: 50%;
+  right: 18px;
+  pointer-events: none;
+  transform: translateY(-50%);
+}
+
+.compactSelect select {
+  min-width: 138px;
+  min-height: 46px;
+  border: 0;
+  color: #ffffff;
+  background: rgba(8, 18, 15, 0.86);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.22);
+}
+
+.compactSelect svg {
+  color: #ffffff;
+}
+
+.arrowToolCluster,
+.arrowOptions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.arrowToolCluster {
+  overflow: hidden;
+  border-radius: 10px;
+  background: rgba(8, 18, 15, 0.86);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.2);
+}
+
+.arrowToolCluster button,
+.darkIconButton {
+  display: grid;
+  width: 46px;
+  height: 46px;
+  place-items: center;
+  color: #ffffff;
+  background: transparent;
+}
+
+.arrowToolCluster button.active,
+.darkIconButton:hover:not(:disabled) {
+  background: #037957;
+}
+
+.pitch {
+  position: absolute;
+  inset: 50px 38px 62px;
+  touch-action: none;
+}
+
+.pitchLine {
+  position: absolute;
+  border-color: rgba(255, 255, 255, 0.56);
+  pointer-events: none;
+}
+
+.outerLine {
+  inset: 0;
+  border: 4px solid rgba(255, 255, 255, 0.58);
+}
+
+.halfLine {
+  top: 50%;
+  left: 0;
+  width: 100%;
+  border-top: 4px solid rgba(255, 255, 255, 0.58);
+}
+
+.centerCircle {
+  top: 50%;
+  left: 50%;
+  width: 25%;
+  aspect-ratio: 1;
+  border: 4px solid rgba(255, 255, 255, 0.58);
+  border-radius: 999px;
+  transform: translate(-50%, -50%);
+}
+
+.topBox,
+.bottomBox {
+  left: 28%;
+  width: 44%;
+  height: 16%;
+  border: 4px solid rgba(255, 255, 255, 0.58);
+}
+
+.topBox {
+  top: 0;
+}
+
+.bottomBox {
+  bottom: 0;
+}
+
+.topGoalBox,
+.bottomGoalBox {
+  left: 39%;
+  width: 22%;
+  height: 8%;
+  border: 4px solid rgba(255, 255, 255, 0.58);
+}
+
+.topGoalBox {
+  top: 0;
+}
+
+.bottomGoalBox {
+  bottom: 0;
+}
+
+.topArc,
+.bottomArc {
+  left: 41%;
+  width: 18%;
+  aspect-ratio: 1;
+  border: 4px solid rgba(255, 255, 255, 0.58);
+  border-radius: 50%;
+}
+
+.topArc {
+  top: 11%;
+  clip-path: inset(50% 0 0 0);
+}
+
+.bottomArc {
+  bottom: 11%;
+  clip-path: inset(0 0 50% 0);
+}
+
+.corner {
+  width: 34px;
+  height: 34px;
+  border: 4px solid rgba(255, 255, 255, 0.58);
+  border-radius: 999px;
+}
+
+.topLeft {
+  top: -17px;
+  left: -17px;
+}
+
+.topRight {
+  top: -17px;
+  right: -17px;
+}
+
+.bottomLeft {
+  bottom: -17px;
+  left: -17px;
+}
+
+.bottomRight {
+  right: -17px;
+  bottom: -17px;
+}
+
+.arrowLayer {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow: visible;
+  cursor: default;
+  pointer-events: none;
+}
+
+.arrowLayer.drawing {
+  cursor: crosshair;
+  pointer-events: auto;
+}
+
+.movementArrowPath {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 5;
+  filter: drop-shadow(0 5px 6px rgba(0, 0, 0, 0.28));
+  pointer-events: none;
+  vector-effect: non-scaling-stroke;
+}
+
+.movementArrow.selected .movementArrowPath {
+  stroke-width: 7;
+  filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.7)) drop-shadow(0 6px 8px rgba(0, 0, 0, 0.3));
+}
+
+.movementArrow:focus-visible {
+  outline: none;
+}
+
+.movementArrow:focus-visible .movementArrowPath {
+  stroke-width: 7;
+  filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.82)) drop-shadow(0 6px 8px rgba(0, 0, 0, 0.3));
+}
+
+.movementArrowHit {
+  fill: none;
+  stroke: transparent;
+  stroke-linecap: round;
+  stroke-width: 22;
+  cursor: pointer;
+  pointer-events: stroke;
+  vector-effect: non-scaling-stroke;
+}
+
+.playerMarker {
+  position: absolute;
+  z-index: 2;
+  display: grid;
+  width: 128px;
+  place-items: center;
+  padding: 0;
+  background: transparent;
+  transform: translate(-50%, -50%);
+  transition:
+    filter 160ms ease,
+    opacity 160ms ease,
+    transform 160ms ease;
+  user-select: none;
+  touch-action: none;
+}
+
+.playerMarker:hover,
+.playerMarker.selected {
+  z-index: 8;
+  filter: drop-shadow(0 0 18px rgba(255, 255, 255, 0.52));
+  transform: translate(-50%, -50%) scale(1.08);
+}
+
+.playerMarker.dimmed {
+  opacity: 0.58;
+}
+
+.playerDisc {
+  display: grid;
+  width: 62px;
+  height: 62px;
+  place-items: center;
+  border: 2px solid rgba(255, 255, 255, 0.82);
+  border-radius: 50%;
+  color: #ffffff;
+  background:
+    radial-gradient(circle at 34% 25%, rgba(255, 255, 255, 0.16), transparent 28%),
+    linear-gradient(135deg, #222b25, #0d1512);
+  box-shadow: 0 16px 34px rgba(0, 0, 0, 0.36);
+  font-size: 1.42rem;
+  font-weight: 850;
+}
+
+.playerName {
+  display: block;
+  max-width: 132px;
+  min-width: 84px;
+  margin-top: -2px;
+  padding: 6px 10px;
+  overflow: hidden;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  border-radius: 8px;
+  color: #111827;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.16);
+  font-size: 0.82rem;
+  font-weight: 800;
+  line-height: 1.1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pitchOptions {
+  position: absolute;
+  right: 22px;
+  bottom: 20px;
+  left: 22px;
+  z-index: 4;
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.pitchOptionGroup {
+  display: flex;
+  gap: 10px;
+}
+
+.segmentedControl,
+.darkToolButton,
+.darkIconButton,
+.arrowColorRow {
+  overflow: hidden;
+  border-radius: 10px;
+  background: rgba(8, 18, 15, 0.86);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.2);
+}
+
+.segmentedControl {
+  display: flex;
+  padding: 0;
+}
+
+.segmentedControl button,
+.darkToolButton {
+  min-height: 46px;
+  padding: 0 18px;
+  color: #ffffff;
+  background: transparent;
+  font-weight: 760;
+}
+
+.darkToolButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  white-space: nowrap;
+}
+
+.segmentedControl button.active {
+  background: #037957;
+}
+
+.arrowOptions {
+  justify-content: flex-end;
+}
+
+.arrowColorRow {
+  display: flex;
+  gap: 6px;
+  padding: 8px;
+}
+
+.arrowColorRow button {
+  width: 30px;
+  height: 30px;
+  border: 2px solid rgba(255, 255, 255, 0.56);
+  border-radius: 999px;
+  background: var(--arrow-color);
+  box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.12);
+}
+
+.arrowColorRow button.active {
+  border-color: #ffffff;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.24), inset 0 0 0 2px rgba(0, 0, 0, 0.12);
+}
+
+.arrowStyleControl button {
+  min-width: 78px;
+}
+
+@media (max-width: 1320px) {
+  .pitchPanel {
+    min-height: 0;
+    justify-self: center;
+    width: min(100%, max(560px, calc(124vh - 134px)));
+    height: auto;
+    aspect-ratio: 1.24 / 1;
+  }
+}
+
+@media (max-width: 820px) {
+  .pitchPanel {
+    width: min(100%, max(420px, calc(116vh - 190px)));
+    height: auto;
+    aspect-ratio: 1.18 / 1;
+    border-radius: 16px;
+  }
+
+  .pitch {
+    inset: 76px 18px 82px;
+  }
+
+  .playerMarker {
+    width: 116px;
+  }
+
+  .playerDisc {
+    width: 56px;
+    height: 56px;
+    font-size: 1.25rem;
+  }
+
+  .playerName {
+    min-width: 76px;
+    max-width: 106px;
+    padding: 6px 8px;
+    font-size: 0.72rem;
+  }
+
+  .pitchOptions {
+    right: 18px;
+    left: 18px;
+    flex-wrap: wrap;
+  }
+
+  .pitchOptionGroup,
+  .arrowOptions {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 540px) {
+  .pitchPanel {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1.12 / 1;
+  }
+
+  .pitchToolbar {
+    right: 18px;
+    left: 18px;
+    flex-wrap: wrap;
+  }
+
+  .arrowOptions,
+  .pitchOptionGroup,
+  .segmentedControl,
+  .darkToolButton {
+    width: 100%;
+  }
+
+  .arrowOptions {
+    justify-content: flex-start;
+  }
+
+  .arrowStyleControl {
+    flex: 1 1 190px;
+  }
+}
