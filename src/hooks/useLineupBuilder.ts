@@ -1,4 +1,4 @@
-import { PointerEvent, useEffect, useMemo, useRef, useState } from "react";
+import { MouseEvent, PointerEvent, useEffect, useMemo, useRef, useState } from "react";
 
 import { normalizeArrows } from "../arrowUtils";
 import { exportPitchImage } from "../exportPitchImage";
@@ -38,6 +38,7 @@ export function useLineupBuilder() {
   const [arrows, setArrows] = useState<MovementArrow[]>(initialLineup.arrows);
   const [draftArrow, setDraftArrow] = useState<MovementArrow | null>(null);
   const [selectedArrowId, setSelectedArrowId] = useState<string | null>(null);
+  const [arrowStartPlayerIndex, setArrowStartPlayerIndex] = useState<number | null>(null);
   const [isDrawingArrows, setIsDrawingArrows] = useState(false);
   const [arrowColor, setArrowColor] = useState(arrowColors[0]);
   const [arrowStyle, setArrowStyle] = useState<ArrowStyle>("solid");
@@ -60,8 +61,18 @@ export function useLineupBuilder() {
   const [matchLoadSide, setMatchLoadSide] = useState<MatchLoadSide>("teamA");
   const pitchRef = useRef<HTMLDivElement>(null);
   const draftArrowRef = useRef<MovementArrow | null>(null);
+  const arrowStartPointRef = useRef<{ x: number; y: number } | null>(null);
 
   const positionSet = formations[formation];
+
+  useEffect(() => {
+    if (!isDrawingArrows) {
+      arrowStartPointRef.current = null;
+      draftArrowRef.current = null;
+      setArrowStartPlayerIndex(null);
+      setDraftArrow(null);
+    }
+  }, [isDrawingArrows]);
 
   useEffect(() => {
     const current: CurrentLineup = {
@@ -86,7 +97,7 @@ export function useLineupBuilder() {
     setDraggingPlayerIndex(null);
   }
 
-  function getPitchPoint(event: PointerEvent) {
+  function getPitchPoint(event: MouseEvent | PointerEvent) {
     const pitch = pitchRef.current;
     if (!pitch) {
       return null;
@@ -96,6 +107,20 @@ export function useLineupBuilder() {
     return {
       x: clamp(((event.clientX - rect.left) / rect.width) * 100, 0, 100),
       y: clamp(((event.clientY - rect.top) / rect.height) * 100, 0, 100),
+    };
+  }
+
+  function getPlayerPitchPoint(index: number) {
+    const player = players[index];
+    const position = positionSet[index];
+
+    if (!player || !position) {
+      return null;
+    }
+
+    return {
+      x: Number((player.customX ?? position.x).toFixed(2)),
+      y: Number((player.customY ?? position.y).toFixed(2)),
     };
   }
 
@@ -131,6 +156,10 @@ export function useLineupBuilder() {
   }
 
   function handlePointerDown(event: PointerEvent<HTMLButtonElement>, index: number) {
+    if (isDrawingArrows) {
+      return;
+    }
+
     event.preventDefault();
     event.currentTarget.setPointerCapture(event.pointerId);
     setSelectedPlayerIndex(index);
@@ -153,7 +182,7 @@ export function useLineupBuilder() {
     setDraggingPlayerIndex(null);
   }
 
-  function handleArrowPointerDown(event: PointerEvent<SVGSVGElement>) {
+  function handleArrowPointerDown(event: PointerEvent<SVGElement>) {
     if (!isDrawingArrows) {
       return;
     }
@@ -165,10 +194,11 @@ export function useLineupBuilder() {
 
     event.preventDefault();
     event.currentTarget.setPointerCapture(event.pointerId);
+    const startPoint = arrowStartPointRef.current ?? point;
     const nextArrow: MovementArrow = {
       id: createId(),
-      fromX: Number(point.x.toFixed(2)),
-      fromY: Number(point.y.toFixed(2)),
+      fromX: Number(startPoint.x.toFixed(2)),
+      fromY: Number(startPoint.y.toFixed(2)),
       toX: Number(point.x.toFixed(2)),
       toY: Number(point.y.toFixed(2)),
       color: arrowColor,
@@ -180,7 +210,33 @@ export function useLineupBuilder() {
     setDraftArrow(nextArrow);
   }
 
-  function handleArrowPointerMove(event: PointerEvent<SVGSVGElement>) {
+  function handleArrowMouseDown(event: MouseEvent<SVGElement>) {
+    if (!isDrawingArrows || draftArrowRef.current) {
+      return;
+    }
+
+    const point = getPitchPoint(event);
+    if (!point) {
+      return;
+    }
+
+    const startPoint = arrowStartPointRef.current ?? point;
+    const nextArrow: MovementArrow = {
+      id: createId(),
+      fromX: Number(startPoint.x.toFixed(2)),
+      fromY: Number(startPoint.y.toFixed(2)),
+      toX: Number(point.x.toFixed(2)),
+      toY: Number(point.y.toFixed(2)),
+      color: arrowColor,
+      style: arrowStyle,
+    };
+    setSelectedPlayerIndex(null);
+    setSelectedArrowId(nextArrow.id);
+    draftArrowRef.current = nextArrow;
+    setDraftArrow(nextArrow);
+  }
+
+  function handleArrowPointerMove(event: PointerEvent<SVGElement>) {
     const currentDraft = draftArrowRef.current;
     if (!currentDraft) {
       return;
@@ -200,7 +256,27 @@ export function useLineupBuilder() {
     setDraftArrow(nextDraft);
   }
 
-  function handleArrowPointerUp(event: PointerEvent<SVGSVGElement>) {
+  function handleArrowMouseMove(event: MouseEvent<SVGElement>) {
+    const currentDraft = draftArrowRef.current;
+    if (!currentDraft) {
+      return;
+    }
+
+    const point = getPitchPoint(event);
+    if (!point) {
+      return;
+    }
+
+    const nextDraft = {
+      ...currentDraft,
+      toX: Number(point.x.toFixed(2)),
+      toY: Number(point.y.toFixed(2)),
+    };
+    draftArrowRef.current = nextDraft;
+    setDraftArrow(nextDraft);
+  }
+
+  function handleArrowPointerUp(event: PointerEvent<SVGElement>) {
     const currentDraft = draftArrowRef.current;
     if (!currentDraft) {
       return;
@@ -218,7 +294,76 @@ export function useLineupBuilder() {
       setSelectedArrowId(null);
     }
     draftArrowRef.current = null;
+    arrowStartPointRef.current = null;
+    setArrowStartPlayerIndex(null);
     setDraftArrow(null);
+  }
+
+  function handleArrowMouseUp() {
+    const currentDraft = draftArrowRef.current;
+    if (!currentDraft) {
+      return;
+    }
+
+    const distance = Math.hypot(currentDraft.toX - currentDraft.fromX, currentDraft.toY - currentDraft.fromY);
+    if (distance >= 3) {
+      setArrows((current) => [...current, currentDraft]);
+      setSelectedArrowId(currentDraft.id);
+    } else {
+      setSelectedArrowId(null);
+    }
+    draftArrowRef.current = null;
+    arrowStartPointRef.current = null;
+    setArrowStartPlayerIndex(null);
+    setDraftArrow(null);
+  }
+
+
+  function handleArrowClick(event: MouseEvent<SVGElement>) {
+    if (!isDrawingArrows || !arrowStartPointRef.current) {
+      return;
+    }
+
+    const point = getPitchPoint(event);
+    if (!point) {
+      return;
+    }
+
+    const startPoint = arrowStartPointRef.current;
+    const nextArrow: MovementArrow = {
+      id: createId(),
+      fromX: Number(startPoint.x.toFixed(2)),
+      fromY: Number(startPoint.y.toFixed(2)),
+      toX: Number(point.x.toFixed(2)),
+      toY: Number(point.y.toFixed(2)),
+      color: arrowColor,
+      style: arrowStyle,
+    };
+    const distance = Math.hypot(nextArrow.toX - nextArrow.fromX, nextArrow.toY - nextArrow.fromY);
+    if (distance >= 3) {
+      setArrows((current) => [...current, nextArrow]);
+      setSelectedArrowId(nextArrow.id);
+    }
+    arrowStartPointRef.current = null;
+    draftArrowRef.current = null;
+    setDraftArrow(null);
+    setArrowStartPlayerIndex(null);
+  }
+
+  function startArrowFromPlayer(index: number) {
+    if (!isDrawingArrows) {
+      return;
+    }
+
+    const point = getPlayerPitchPoint(index);
+    if (!point) {
+      return;
+    }
+
+    arrowStartPointRef.current = point;
+    setArrowStartPlayerIndex(index);
+    setSelectedArrowId(null);
+    setSelectedPlayerIndex(index);
   }
 
   function selectArrow(id: string) {
@@ -238,7 +383,9 @@ export function useLineupBuilder() {
   function clearArrows() {
     setArrows([]);
     draftArrowRef.current = null;
+    arrowStartPointRef.current = null;
     setDraftArrow(null);
+    setArrowStartPlayerIndex(null);
     setSelectedArrowId(null);
   }
 
@@ -254,7 +401,9 @@ export function useLineupBuilder() {
     setSubstitutes([]);
     setArrows([]);
     draftArrowRef.current = null;
+    arrowStartPointRef.current = null;
     setDraftArrow(null);
+    setArrowStartPlayerIndex(null);
     setLineupName("Untitled lineup");
     setSelectedPlayerIndex(null);
     setSelectedArrowId(null);
@@ -267,7 +416,9 @@ export function useLineupBuilder() {
     setSubstitutes([]);
     setArrows([]);
     draftArrowRef.current = null;
+    arrowStartPointRef.current = null;
     setDraftArrow(null);
+    setArrowStartPlayerIndex(null);
     setPitchTheme("classic");
     setPlayerBadges(true);
     setLineupName("");
@@ -310,7 +461,9 @@ export function useLineupBuilder() {
     setSubstitutes(save.substitutes ?? []);
     setArrows(normalizeArrows(save.arrows));
     draftArrowRef.current = null;
+    arrowStartPointRef.current = null;
     setDraftArrow(null);
+    setArrowStartPlayerIndex(null);
     setSelectedPlayerIndex(null);
     setSelectedArrowId(null);
   }
@@ -363,6 +516,7 @@ export function useLineupBuilder() {
     setEditorTab("starting");
     setSelectedPlayerIndex(null);
     setDraggingPlayerIndex(null);
+    setArrowStartPlayerIndex(null);
     setSelectedArrowId(null);
     setMatchImportStatus(`Loaded ${imported.team.name}${imported.formation ? ` (${imported.formation})` : ""}.`);
   }
@@ -484,6 +638,7 @@ export function useLineupBuilder() {
     pitchPanelProps: {
       arrowColor,
       arrowColors,
+      arrowStartPlayerIndex,
       arrows,
       arrowStyle,
       clearArrows,
@@ -491,6 +646,10 @@ export function useLineupBuilder() {
       draftArrow,
       formation,
       isDrawingArrows,
+      onArrowClick: handleArrowClick,
+      onArrowMouseDown: handleArrowMouseDown,
+      onArrowMouseMove: handleArrowMouseMove,
+      onArrowMouseUp: handleArrowMouseUp,
       onArrowPointerDown: handleArrowPointerDown,
       onArrowPointerMove: handleArrowPointerMove,
       onArrowPointerUp: handleArrowPointerUp,
@@ -512,6 +671,7 @@ export function useLineupBuilder() {
       setPitchTheme,
       setPlayerBadges,
       setSelectedPlayerIndex,
+      startArrowFromPlayer,
     },
     topBarProps: {
       formation,

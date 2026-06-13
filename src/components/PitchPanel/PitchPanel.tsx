@@ -1,14 +1,36 @@
-import { ArrowRight, ChevronDown, MousePointer2, Trash2, UserRound, X } from "lucide-react";
-import type { CSSProperties, Dispatch, PointerEvent, RefObject, SetStateAction } from "react";
+import {
+  ArrowRight,
+  ChevronDown,
+  MousePointer2,
+  Trash2,
+  UserRound,
+  X,
+} from "lucide-react";
+import type {
+  CSSProperties,
+  Dispatch,
+  MouseEvent,
+  PointerEvent,
+  RefObject,
+  SetStateAction,
+} from "react";
 
 import { moreFormations, quickFormations } from "../../formations";
 import { hasPlayerDetails, shortName } from "../../playerUtils";
-import type { ArrowStyle, FormationName, MovementArrow, PitchTheme, Player, PositionCoordinate } from "../../types";
+import type {
+  ArrowStyle,
+  FormationName,
+  MovementArrow,
+  PitchTheme,
+  Player,
+  PositionCoordinate,
+} from "../../types";
 import styles from "./PitchPanel.module.css";
 
 type PitchPanelProps = {
   arrowColor: string;
   arrowColors: string[];
+  arrowStartPlayerIndex: number | null;
   arrows: MovementArrow[];
   arrowStyle: ArrowStyle;
   clearArrows: () => void;
@@ -17,11 +39,21 @@ type PitchPanelProps = {
   formation: FormationName;
   isDrawingArrows: boolean;
   onFormationChange: (formation: FormationName) => void;
-  onArrowPointerDown: (event: PointerEvent<SVGSVGElement>) => void;
-  onArrowPointerMove: (event: PointerEvent<SVGSVGElement>) => void;
-  onArrowPointerUp: (event: PointerEvent<SVGSVGElement>) => void;
-  onPointerDown: (event: PointerEvent<HTMLButtonElement>, index: number) => void;
-  onPointerMove: (event: PointerEvent<HTMLButtonElement>, index: number) => void;
+  onArrowClick: (event: MouseEvent<SVGElement>) => void;
+  onArrowMouseDown: (event: MouseEvent<SVGElement>) => void;
+  onArrowMouseMove: (event: MouseEvent<SVGElement>) => void;
+  onArrowMouseUp: () => void;
+  onArrowPointerDown: (event: PointerEvent<SVGElement>) => void;
+  onArrowPointerMove: (event: PointerEvent<SVGElement>) => void;
+  onArrowPointerUp: (event: PointerEvent<SVGElement>) => void;
+  onPointerDown: (
+    event: PointerEvent<HTMLButtonElement>,
+    index: number,
+  ) => void;
+  onPointerMove: (
+    event: PointerEvent<HTMLButtonElement>,
+    index: number,
+  ) => void;
   onPointerUp: (event: PointerEvent<HTMLButtonElement>, index: number) => void;
   pitchRef: RefObject<HTMLDivElement>;
   pitchTheme: PitchTheme;
@@ -37,6 +69,7 @@ type PitchPanelProps = {
   setPitchTheme: Dispatch<SetStateAction<PitchTheme>>;
   setPlayerBadges: Dispatch<SetStateAction<boolean>>;
   setSelectedPlayerIndex: Dispatch<SetStateAction<number | null>>;
+  startArrowFromPlayer: (index: number) => void;
 };
 
 function cx(...classes: Array<string | false>) {
@@ -46,6 +79,7 @@ function cx(...classes: Array<string | false>) {
 export function PitchPanel({
   arrowColor,
   arrowColors,
+  arrowStartPlayerIndex,
   arrows,
   arrowStyle,
   clearArrows,
@@ -54,6 +88,10 @@ export function PitchPanel({
   formation,
   isDrawingArrows,
   onFormationChange,
+  onArrowClick,
+  onArrowMouseDown,
+  onArrowMouseMove,
+  onArrowMouseUp,
   onArrowPointerDown,
   onArrowPointerMove,
   onArrowPointerUp,
@@ -74,16 +112,22 @@ export function PitchPanel({
   setPitchTheme,
   setPlayerBadges,
   setSelectedPlayerIndex,
+  startArrowFromPlayer,
 }: PitchPanelProps) {
   const visibleArrows = draftArrow ? [...arrows, draftArrow] : arrows;
 
   return (
-    <section className={cx(styles.pitchPanel, pitchTheme === "dark" && styles.dark)} aria-label="Football pitch">
+    <section
+      className={cx(styles.pitchPanel, pitchTheme === "dark" && styles.dark)}
+      aria-label="Football pitch"
+    >
       <div className={styles.pitchToolbar}>
         <label className={cx(styles.selectWrap, styles.compactSelect)}>
           <select
             aria-label="Current formation"
-            onChange={(event) => onFormationChange(event.target.value as FormationName)}
+            onChange={(event) =>
+              onFormationChange(event.target.value as FormationName)
+            }
             value={formation}
           >
             {[...quickFormations, ...moreFormations].map((item) => (
@@ -101,18 +145,20 @@ export function PitchPanel({
             onClick={() => setIsDrawingArrows(false)}
             type="button"
             aria-label="Select arrows and players"
-            title="Select"
+            title="Select or move players"
           >
             <MousePointer2 size={18} aria-hidden="true" />
+            <span>Select</span>
           </button>
           <button
             className={isDrawingArrows ? styles.active : ""}
             onClick={() => setIsDrawingArrows(true)}
             type="button"
             aria-label="Draw movement arrow"
-            title="Draw arrow"
+            title="Draw arrows. Double-click a player to start an arrow from that player."
           >
             <ArrowRight size={18} aria-hidden="true" />
+            <span>Arrow</span>
           </button>
         </div>
       </div>
@@ -129,18 +175,33 @@ export function PitchPanel({
         <div className={cx(styles.pitchLine, styles.bottomArc)} />
         <div className={cx(styles.pitchLine, styles.corner, styles.topLeft)} />
         <div className={cx(styles.pitchLine, styles.corner, styles.topRight)} />
-        <div className={cx(styles.pitchLine, styles.corner, styles.bottomLeft)} />
-        <div className={cx(styles.pitchLine, styles.corner, styles.bottomRight)} />
+        <div
+          className={cx(styles.pitchLine, styles.corner, styles.bottomLeft)}
+        />
+        <div
+          className={cx(styles.pitchLine, styles.corner, styles.bottomRight)}
+        />
 
         <svg
           className={cx(styles.arrowLayer, isDrawingArrows && styles.drawing)}
-          onPointerDown={onArrowPointerDown}
-          onPointerMove={onArrowPointerMove}
-          onPointerUp={onArrowPointerUp}
           viewBox="0 0 100 100"
           preserveAspectRatio="none"
           aria-label="Movement arrows"
         >
+          <rect
+            className={styles.arrowCapture}
+            onClick={onArrowClick}
+            onMouseDown={onArrowMouseDown}
+            onMouseMove={onArrowMouseMove}
+            onMouseUp={onArrowMouseUp}
+            onPointerDown={onArrowPointerDown}
+            onPointerMove={onArrowPointerMove}
+            onPointerUp={onArrowPointerUp}
+            x="0"
+            y="0"
+            width="100"
+            height="100"
+          />
           <defs>
             {visibleArrows.map((arrow) => (
               <marker
@@ -163,10 +224,16 @@ export function PitchPanel({
             return (
               <g
                 aria-label="Select movement arrow"
-                className={cx(styles.movementArrow, isSelected && styles.selected)}
+                className={cx(
+                  styles.movementArrow,
+                  isSelected && styles.selected,
+                )}
                 key={arrow.id}
                 onKeyDown={(event) => {
-                  if (!isDrawingArrows && (event.key === "Enter" || event.key === " ")) {
+                  if (
+                    !isDrawingArrows &&
+                    (event.key === "Enter" || event.key === " ")
+                  ) {
                     event.preventDefault();
                     selectArrow(arrow.id);
                   }
@@ -211,6 +278,7 @@ export function PitchPanel({
           const x = player.customX ?? position.x;
           const y = player.customY ?? position.y;
           const isSelected = selectedPlayerIndex === index;
+          const isArrowStart = arrowStartPlayerIndex === index;
           const playerName = shortName(player.name);
 
           return (
@@ -219,6 +287,7 @@ export function PitchPanel({
               className={cx(
                 styles.playerMarker,
                 isSelected && styles.selected,
+                isArrowStart && styles.arrowStart,
                 selectedPlayerIndex !== null && !isSelected && styles.dimmed,
               )}
               key={`${position.role}-${index}`}
@@ -226,13 +295,28 @@ export function PitchPanel({
               onPointerDown={(event) => onPointerDown(event, index)}
               onPointerMove={(event) => onPointerMove(event, index)}
               onPointerUp={(event) => onPointerUp(event, index)}
+              onDoubleClick={(event) => {
+                event.preventDefault();
+                startArrowFromPlayer(index);
+              }}
               style={{ left: `${x}%`, top: `${y}%` }}
+              title={
+                isDrawingArrows
+                  ? "Double-click to start an arrow from this player"
+                  : undefined
+              }
               type="button"
             >
               <span className={styles.playerDisc}>
-                {playerBadges ? player.number || index + 1 : <UserRound size={28} aria-hidden="true" />}
+                {playerBadges ? (
+                  player.number || index + 1
+                ) : (
+                  <UserRound size={28} aria-hidden="true" />
+                )}
               </span>
-              {playerName ? <span className={styles.playerName}>{playerName}</span> : null}
+              {playerName ? (
+                <span className={styles.playerName}>{playerName}</span>
+              ) : null}
             </button>
           );
         })}
@@ -240,7 +324,11 @@ export function PitchPanel({
 
       <div className={styles.pitchOptions}>
         <div className={styles.pitchOptionGroup}>
-          <div className={styles.segmentedControl} role="group" aria-label="Pitch theme">
+          <div
+            className={styles.segmentedControl}
+            role="group"
+            aria-label="Pitch theme"
+          >
             <button
               className={pitchTheme === "classic" ? styles.active : ""}
               onClick={() => setPitchTheme("classic")}
@@ -257,7 +345,11 @@ export function PitchPanel({
             </button>
           </div>
 
-          <button className={styles.darkToolButton} onClick={() => setPlayerBadges((current) => !current)} type="button">
+          <button
+            className={styles.darkToolButton}
+            onClick={() => setPlayerBadges((current) => !current)}
+            type="button"
+          >
             <UserRound size={18} aria-hidden="true" />
             {playerBadges ? "Numbers" : "Icons"}
           </button>
@@ -277,7 +369,11 @@ export function PitchPanel({
             ))}
           </div>
 
-          <div className={cx(styles.segmentedControl, styles.arrowStyleControl)} role="group" aria-label="Arrow style">
+          <div
+            className={cx(styles.segmentedControl, styles.arrowStyleControl)}
+            role="group"
+            aria-label="Arrow style"
+          >
             <button
               className={arrowStyle === "solid" ? styles.active : ""}
               onClick={() => setArrowStyle("solid")}
@@ -305,14 +401,15 @@ export function PitchPanel({
             <Trash2 size={18} aria-hidden="true" />
           </button>
           <button
-            className={styles.darkIconButton}
+            className={styles.clearArrowsButton}
             disabled={arrows.length === 0 && !draftArrow}
             onClick={clearArrows}
             type="button"
             aria-label="Clear arrows"
-            title="Clear arrows"
+            title="Clear all arrows from the pitch"
           >
             <X size={18} aria-hidden="true" />
+            <span>Clear arrows</span>
           </button>
         </div>
       </div>

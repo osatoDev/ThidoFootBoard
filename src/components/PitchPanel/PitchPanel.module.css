@@ -90,13 +90,34 @@
 }
 
 .arrowToolCluster {
+  padding: 4px;
   overflow: hidden;
   border-radius: 10px;
   background: rgba(8, 18, 15, 0.86);
   box-shadow: 0 16px 36px rgba(0, 0, 0, 0.2);
 }
 
-.arrowToolCluster button,
+.arrowToolLabel {
+  padding: 0 8px 0 10px;
+  color: rgba(255, 255, 255, 0.76);
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.arrowToolCluster button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  gap: 8px;
+  padding: 0 12px;
+  border-radius: 8px;
+  color: #ffffff;
+  background: transparent;
+  font-weight: 800;
+}
+
 .darkIconButton {
   display: grid;
   width: 46px;
@@ -108,6 +129,14 @@
 
 .arrowToolCluster button.active,
 .darkIconButton:hover:not(:disabled) {
+  background: #037957;
+}
+
+.arrowToolCluster button:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.arrowToolCluster button.active:hover:not(:disabled) {
   background: #037957;
 }
 
@@ -237,6 +266,15 @@
   pointer-events: auto;
 }
 
+.arrowCapture {
+  fill: transparent;
+  pointer-events: none;
+}
+
+.arrowLayer.drawing .arrowCapture {
+  pointer-events: all;
+}
+
 .movementArrowPath {
   fill: none;
   stroke-linecap: round;
@@ -293,6 +331,17 @@
   z-index: 8;
   filter: drop-shadow(0 0 18px rgba(255, 255, 255, 0.52));
   transform: translate(-50%, -50%) scale(1.08);
+}
+
+.playerMarker.arrowStart {
+  z-index: 9;
+  filter: drop-shadow(0 0 20px rgba(249, 115, 22, 0.82));
+  transform: translate(-50%, -50%) scale(1.1);
+}
+
+.playerMarker.arrowStart .playerDisc {
+  border-color: #f97316;
+  box-shadow: 0 0 0 5px rgba(249, 115, 22, 0.22), 0 16px 34px rgba(0, 0, 0, 0.36);
 }
 
 .playerMarker.dimmed {
@@ -353,6 +402,7 @@
 .segmentedControl,
 .darkToolButton,
 .darkIconButton,
+.clearArrowsButton,
 .arrowColorRow {
   overflow: hidden;
   border-radius: 10px;
@@ -366,7 +416,8 @@
 }
 
 .segmentedControl button,
-.darkToolButton {
+.darkToolButton,
+.clearArrowsButton {
   min-height: 46px;
   padding: 0 18px;
   color: #ffffff;
@@ -374,12 +425,17 @@
   font-weight: 760;
 }
 
-.darkToolButton {
+.darkToolButton,
+.clearArrowsButton {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
   white-space: nowrap;
+}
+
+.clearArrowsButton:hover:not(:disabled) {
+  background: #7f1d1d;
 }
 
 .segmentedControl button.active {
@@ -481,7 +537,8 @@
   .arrowOptions,
   .pitchOptionGroup,
   .segmentedControl,
-  .darkToolButton {
+  .darkToolButton,
+  .clearArrowsButton {
     width: 100%;
   }
 
