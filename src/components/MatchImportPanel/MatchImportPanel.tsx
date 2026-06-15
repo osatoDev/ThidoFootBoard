@@ -1,172 +1,79 @@
-import { ArrowLeftRight, CalendarDays, ChevronDown, Search } from "lucide-react";
-import type { Dispatch, SetStateAction } from "react";
+import { ChevronDown, Crown, Download } from "lucide-react";
+import { useState } from "react";
 
-import type { MatchLoadSide, MatchSummary } from "../../types";
+import type { ManualLineupImport } from "../../types";
+import {
+  LineupImportModal,
+  type LineupImportMethod,
+} from "../LineupImportModal/LineupImportModal";
 import styles from "./MatchImportPanel.module.css";
 
 type MatchImportPanelProps = {
-  isLoadingLineup: boolean;
-  isSearchingMatches: boolean;
-  matchDate: string;
+  hasPremiumAccess: boolean;
   matchImportStatus: string;
-  matchLoadSide: MatchLoadSide;
-  matchResults: MatchSummary[];
-  onFindAndLoadLineup: () => void;
-  onLoadImportedLineup: (teamId: number) => void;
-  onSearchMatches: () => void;
-  onSwapTeams: () => void;
-  selectedMatchId: number | null;
-  setMatchDate: Dispatch<SetStateAction<string>>;
-  setMatchLoadSide: Dispatch<SetStateAction<MatchLoadSide>>;
-  setSelectedMatchId: Dispatch<SetStateAction<number | null>>;
-  setTeamA: Dispatch<SetStateAction<string>>;
-  setTeamB: Dispatch<SetStateAction<string>>;
-  teamA: string;
-  teamB: string;
+  onImportLineup: (lineup: ManualLineupImport) => void;
+  onOpenPricing: () => void;
 };
 
 export function MatchImportPanel({
-  isLoadingLineup,
-  isSearchingMatches,
-  matchDate,
+  hasPremiumAccess,
   matchImportStatus,
-  matchLoadSide,
-  matchResults,
-  onFindAndLoadLineup,
-  onLoadImportedLineup,
-  onSearchMatches,
-  onSwapTeams,
-  selectedMatchId,
-  setMatchDate,
-  setMatchLoadSide,
-  setSelectedMatchId,
-  setTeamA,
-  setTeamB,
-  teamA,
-  teamB,
+  onImportLineup,
+  onOpenPricing,
 }: MatchImportPanelProps) {
+  const [importMethod, setImportMethod] = useState<LineupImportMethod | null>(null);
+
+  function openImportMethod(value: string) {
+    if (!value) {
+      return;
+    }
+
+    if ((value === "screenshot" || value === "match") && !hasPremiumAccess) {
+      onOpenPricing();
+      return;
+    }
+
+    setImportMethod(value as LineupImportMethod);
+  }
+
   return (
-    <section className={styles.matchImportPanel} aria-label="Match import">
+    <section className={styles.matchImportPanel} aria-label="Lineup import">
       <div className={styles.matchImportHeader}>
         <div>
-          <span>Match Import</span>
-          <strong>API-Football</strong>
+          <span>Lineup Import</span>
+          <strong>Choose a source</strong>
         </div>
-        <CalendarDays size={20} aria-hidden="true" />
+        <Download size={20} aria-hidden="true" />
       </div>
 
-      <div className={styles.matchImportGrid}>
-        <label>
-          <span>Date</span>
-          <input
-            aria-label="Match date"
-            onChange={(event) => setMatchDate(event.target.value)}
-            type="date"
-            value={matchDate}
-          />
-        </label>
-        <label>
-          <span>Team A</span>
-          <input
-            aria-label="Team A"
-            onChange={(event) => setTeamA(event.target.value)}
-            placeholder="Arsenal"
-            type="text"
-            value={teamA}
-          />
-        </label>
-        <label>
-          <span>Team B</span>
-          <input
-            aria-label="Team B"
-            onChange={(event) => setTeamB(event.target.value)}
-            placeholder="Tottenham"
-            type="text"
-            value={teamB}
-          />
-        </label>
-      </div>
+      <label className={`${styles.selectWrap} ${styles.importMethodSelect}`}>
+        <Download size={17} aria-hidden="true" />
+        <select aria-label="Import lineup" onChange={(event) => openImportMethod(event.target.value)} value="">
+          <option value="">Import lineup</option>
+          <option value="screenshot">Upload screenshot (Premium)</option>
+          <option value="match">Find match lineup with AI (Premium)</option>
+          <option value="file">Import CSV or JSON</option>
+          <option value="text">Paste text</option>
+        </select>
+        <ChevronDown size={16} aria-hidden="true" />
+      </label>
 
-      <div className={styles.loadSideControl} role="group" aria-label="Team to load">
-        <button
-          className={matchLoadSide === "teamA" ? styles.active : ""}
-          onClick={() => setMatchLoadSide("teamA")}
-          type="button"
-        >
-          Load Team A
+      {!hasPremiumAccess ? (
+        <button className={styles.premiumNotice} onClick={onOpenPricing} type="button">
+          <Crown size={16} aria-hidden="true" />
+          AI screenshot and match imports are available with Premium
         </button>
-        <button
-          className={matchLoadSide === "teamB" ? styles.active : ""}
-          onClick={() => setMatchLoadSide("teamB")}
-          type="button"
-        >
-          Load Team B
-        </button>
-      </div>
-
-      <div className={styles.matchImportActions}>
-        <button className={styles.ghostMiniButton} onClick={onSwapTeams} type="button">
-          <ArrowLeftRight size={17} aria-hidden="true" />
-          Swap
-        </button>
-        <button className={styles.ghostMiniButton} disabled={isSearchingMatches} onClick={onSearchMatches} type="button">
-          <Search size={17} aria-hidden="true" />
-          Find Only
-        </button>
-        <button
-          className={styles.primaryMiniButton}
-          disabled={!selectedMatchId || isSearchingMatches || isLoadingLineup}
-          onClick={onFindAndLoadLineup}
-          type="button"
-        >
-          <Search size={17} aria-hidden="true" />
-          {isLoadingLineup ? "Loading" : "Find & Load"}
-        </button>
-      </div>
-
-      {matchResults.length > 0 ? (
-        <div className={styles.matchResults}>
-          <label className={`${styles.selectWrap} ${styles.matchSelect}`}>
-            <select
-              aria-label="Matched fixtures"
-              onChange={(event) => setSelectedMatchId(Number(event.target.value))}
-              value={selectedMatchId ?? ""}
-            >
-              {matchResults.map((match) => (
-                <option key={match.fixtureId} value={match.fixtureId}>
-                  {match.home.name} vs {match.away.name}
-                </option>
-              ))}
-            </select>
-            <ChevronDown size={16} aria-hidden="true" />
-          </label>
-
-          {matchResults
-            .filter((match) => match.fixtureId === selectedMatchId)
-            .map((match) => (
-              <div className={styles.matchResultCard} key={match.fixtureId}>
-                <div>
-                  <strong>
-                    {match.home.name} vs {match.away.name}
-                  </strong>
-                  <span>
-                    {match.league.name} · {new Date(match.date).toLocaleDateString()} · {match.status}
-                  </span>
-                </div>
-                <div className={styles.lineupLoadButtons}>
-                  <button disabled={isLoadingLineup} onClick={() => onLoadImportedLineup(match.home.id)} type="button">
-                    Load {match.home.name}
-                  </button>
-                  <button disabled={isLoadingLineup} onClick={() => onLoadImportedLineup(match.away.id)} type="button">
-                    Load {match.away.name}
-                  </button>
-                </div>
-              </div>
-            ))}
-        </div>
       ) : null}
 
       {matchImportStatus ? <p className={styles.matchImportStatus}>{matchImportStatus}</p> : null}
+
+      {importMethod ? (
+        <LineupImportModal
+          method={importMethod}
+          onClose={() => setImportMethod(null)}
+          onImportLineup={onImportLineup}
+        />
+      ) : null}
     </section>
   );
 }

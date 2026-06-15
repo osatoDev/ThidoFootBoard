@@ -1,4 +1,4 @@
-import { ChevronDown, Download, RefreshCcw } from "lucide-react";
+import { ChevronDown, Crown, Download, RefreshCcw } from "lucide-react";
 
 import { moreFormations, quickFormations } from "../../formations";
 import type { FormationName } from "../../types";
@@ -6,16 +6,27 @@ import styles from "./TopBar.module.css";
 
 type TopBarProps = {
   formation: FormationName;
+  hasPremiumAccess: boolean;
+  isLocalhost: boolean;
   onClearLineup: () => void;
   onExportPitchImage: () => void;
   onFormationChange: (formation: FormationName) => void;
+  onOpenPricing: () => void;
 };
 
 function cx(...classes: Array<string | false>) {
   return classes.filter(Boolean).join(" ");
 }
 
-export function TopBar({ formation, onClearLineup, onExportPitchImage, onFormationChange }: TopBarProps) {
+export function TopBar({
+  formation,
+  hasPremiumAccess,
+  isLocalhost,
+  onClearLineup,
+  onExportPitchImage,
+  onFormationChange,
+  onOpenPricing,
+}: TopBarProps) {
   return (
     <header className={styles.topBar}>
       <div className={styles.brandLockup}>
@@ -68,6 +79,10 @@ export function TopBar({ formation, onClearLineup, onExportPitchImage, onFormati
       </div>
 
       <div className={styles.topActions}>
+        <button className={styles.planButton} onClick={onOpenPricing} type="button">
+          <Crown size={17} aria-hidden="true" />
+          {hasPremiumAccess ? (isLocalhost ? "Premium Dev" : "Premium") : "Upgrade"}
+        </button>
         <button className={styles.ghostButton} onClick={onClearLineup} type="button">
           <RefreshCcw size={18} aria-hidden="true" />
           Clear

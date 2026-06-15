@@ -56,52 +56,10 @@ export type CurrentLineup = {
 };
 
 export type EditorTab = "starting" | "substitutes";
-export type MatchLoadSide = "teamA" | "teamB";
 
-export type MatchSummary = {
-  fixtureId: number;
-  date: string;
-  status: string;
-  league: {
-    id: number;
-    name: string;
-    country: string;
-    season: number;
-    logo?: string;
-  };
-  venue?: string;
-  home: {
-    id: number;
-    name: string;
-    logo?: string;
-  };
-  away: {
-    id: number;
-    name: string;
-    logo?: string;
-  };
-};
-
-export type ImportedLineupPlayer = {
-  id?: number;
-  name: string;
-  number: string;
-  role: string;
-  grid: string;
-};
-
-export type ImportedLineup = {
-  team: {
-    id: number;
-    name: string;
-    logo?: string;
-  };
-  formation: string;
-  coach?: {
-    id?: number;
-    name?: string;
-    photo?: string;
-  };
-  startXI: ImportedLineupPlayer[];
-  substitutes: ImportedLineupPlayer[];
+export type ManualLineupImport = {
+  formation?: FormationName;
+  name?: string;
+  players: Player[];
+  substitutes: Player[];
 };

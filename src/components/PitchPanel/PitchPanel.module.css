@@ -2,7 +2,7 @@
   position: relative;
   justify-self: stretch;
   overflow: hidden;
-  width: 100%;
+  width: 85%;
   height: var(--desktop-content-height);
   aspect-ratio: auto;
   min-height: 0;
@@ -22,13 +22,11 @@
 .pitchPanel::before {
   position: absolute;
   inset: 0;
-  background: repeating-linear-gradient(
-    0deg,
-    rgba(255, 255, 255, 0.045) 0,
-    rgba(255, 255, 255, 0.045) 70px,
-    rgba(0, 0, 0, 0.035) 70px,
-    rgba(0, 0, 0, 0.035) 140px
-  );
+  background: repeating-linear-gradient(0deg,
+      rgba(255, 255, 255, 0.045) 0,
+      rgba(255, 255, 255, 0.045) 70px,
+      rgba(0, 0, 0, 0.035) 70px,
+      rgba(0, 0, 0, 0.035) 140px);
   content: "";
 }
 

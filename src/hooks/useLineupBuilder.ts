@@ -3,17 +3,12 @@ import { MouseEvent, PointerEvent, useEffect, useMemo, useRef, useState } from "
 import { normalizeArrows } from "../arrowUtils";
 import { exportPitchImage } from "../exportPitchImage";
 import { formations } from "../formations";
-import { fetchMatchLineups, fetchMatchResults } from "../matchApi";
 import {
   clamp,
   createEmptyPlayers,
   DEFAULT_FORMATION,
-  isFormationName,
-  mapGridToPitchPlayers,
   normalizePlayers,
   stripCustomPositions,
-  teamNameMatches,
-  todayInputValue,
 } from "../playerUtils";
 import { createId, CURRENT_STORAGE_KEY, loadCurrentLineup, loadSavedLineups, SAVED_STORAGE_KEY } from "../storage";
 import type {
@@ -21,8 +16,7 @@ import type {
   CurrentLineup,
   EditorTab,
   FormationName,
-  MatchLoadSide,
-  MatchSummary,
+  ManualLineupImport,
   MovementArrow,
   Player,
   SavedLineup,
@@ -50,15 +44,7 @@ export function useLineupBuilder() {
   const [savedLineups, setSavedLineups] = useState<SavedLineup[]>(loadSavedLineups);
   const [lineupName, setLineupName] = useState("");
   const [selectedSavedId, setSelectedSavedId] = useState("");
-  const [matchDate, setMatchDate] = useState(todayInputValue);
-  const [teamA, setTeamA] = useState("");
-  const [teamB, setTeamB] = useState("");
-  const [matchResults, setMatchResults] = useState<MatchSummary[]>([]);
-  const [selectedMatchId, setSelectedMatchId] = useState<number | null>(null);
   const [matchImportStatus, setMatchImportStatus] = useState("");
-  const [isSearchingMatches, setIsSearchingMatches] = useState(false);
-  const [isLoadingLineup, setIsLoadingLineup] = useState(false);
-  const [matchLoadSide, setMatchLoadSide] = useState<MatchLoadSide>("teamA");
   const pitchRef = useRef<HTMLDivElement>(null);
   const draftArrowRef = useRef<MovementArrow | null>(null);
   const arrowStartPointRef = useRef<{ x: number; y: number } | null>(null);
@@ -486,108 +472,19 @@ export function useLineupBuilder() {
     setSubstitutes((current) => current.filter((_, playerIndex) => playerIndex !== index));
   }
 
-  function getRequestedTeamId(match: MatchSummary) {
-    const requestedTeamName = matchLoadSide === "teamA" ? teamA : teamB;
-
-    if (teamNameMatches(match.home.name, requestedTeamName)) {
-      return match.home.id;
-    }
-
-    if (teamNameMatches(match.away.name, requestedTeamName)) {
-      return match.away.id;
-    }
-
-    return matchLoadSide === "teamA" ? match.home.id : match.away.id;
-  }
-
-  async function applyImportedLineup(match: MatchSummary, teamId: number) {
-    const imported = (await fetchMatchLineups(match.fixtureId)).find((lineup) => lineup.team.id === teamId);
-    if (!imported || imported.startXI.length === 0) {
-      throw new Error("Lineups are not available yet for that team.");
-    }
-
-    if (isFormationName(imported.formation)) {
+  function importManualLineup(imported: ManualLineupImport) {
+    if (imported.formation) {
       setFormation(imported.formation);
     }
-
-    setPlayers(normalizePlayers(mapGridToPitchPlayers(imported.startXI)));
-    setSubstitutes(imported.substitutes.map((player) => ({ name: player.name, number: player.number })));
-    setLineupName(`${imported.team.name} ${imported.formation || match.league.name}`);
+    setPlayers(normalizePlayers(imported.players));
+    setSubstitutes(imported.substitutes);
+    setLineupName(imported.name?.trim() || "Imported lineup");
     setEditorTab("starting");
     setSelectedPlayerIndex(null);
     setDraggingPlayerIndex(null);
-    setArrowStartPlayerIndex(null);
-    setSelectedArrowId(null);
-    setMatchImportStatus(`Loaded ${imported.team.name}${imported.formation ? ` (${imported.formation})` : ""}.`);
-  }
-
-  async function searchMatches() {
-    if (!matchDate || !teamA.trim() || !teamB.trim()) {
-      setMatchImportStatus("Add a date and both teams.");
-      return;
-    }
-
-    setIsSearchingMatches(true);
-    setMatchImportStatus("");
-    setMatchResults([]);
-    setSelectedMatchId(null);
-
-    try {
-      const matches = await fetchMatchResults(matchDate, teamA, teamB);
-      setMatchResults(matches);
-      setSelectedMatchId(matches[0]?.fixtureId ?? null);
-      setMatchImportStatus(matches.length === 0 ? "No matching fixture found for that date." : "");
-    } catch (error) {
-      setMatchImportStatus(error instanceof Error ? error.message : "Could not search matches.");
-    } finally {
-      setIsSearchingMatches(false);
-    }
-  }
-
-  function swapTeams() {
-    setTeamA(teamB);
-    setTeamB(teamA);
-    setMatchResults([]);
-    setSelectedMatchId(null);
-    setMatchImportStatus("");
-  }
-
-  async function findAndLoadLineup() {
-    const match = matchResults.find((result) => result.fixtureId === selectedMatchId);
-    if (!match) {
-      setMatchImportStatus("Choose a match first.");
-      return;
-    }
-
-    setIsLoadingLineup(true);
-    setMatchImportStatus("");
-
-    try {
-      await applyImportedLineup(match, getRequestedTeamId(match));
-    } catch (error) {
-      setMatchImportStatus(error instanceof Error ? error.message : "Could not load the lineup.");
-    } finally {
-      setIsLoadingLineup(false);
-    }
-  }
-
-  async function loadImportedLineup(teamId: number) {
-    const match = matchResults.find((result) => result.fixtureId === selectedMatchId);
-    if (!match) {
-      setMatchImportStatus("Choose a match first.");
-      return;
-    }
-
-    setIsLoadingLineup(true);
-    setMatchImportStatus("");
-
-    try {
-      await applyImportedLineup(match, teamId);
-    } catch (error) {
-      setMatchImportStatus(error instanceof Error ? error.message : "Could not load lineups.");
-    } finally {
-      setIsLoadingLineup(false);
-    }
+    setMatchImportStatus(
+      `Imported ${Math.min(imported.players.length, 11)} starters and ${imported.substitutes.length} substitutes.`,
+    );
   }
 
   return {
@@ -616,24 +513,8 @@ export function useLineupBuilder() {
       setLineupName,
     },
     matchImportPanelProps: {
-      isLoadingLineup,
-      isSearchingMatches,
-      matchDate,
       matchImportStatus,
-      matchLoadSide,
-      matchResults,
-      onFindAndLoadLineup: findAndLoadLineup,
-      onLoadImportedLineup: loadImportedLineup,
-      onSearchMatches: searchMatches,
-      onSwapTeams: swapTeams,
-      selectedMatchId,
-      setMatchDate,
-      setMatchLoadSide,
-      setSelectedMatchId,
-      setTeamA,
-      setTeamB,
-      teamA,
-      teamB,
+      onImportLineup: importManualLineup,
     },
     pitchPanelProps: {
       arrowColor,

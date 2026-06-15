@@ -98,6 +98,7 @@
 }
 
 .formationButton,
+.planButton,
 .ghostButton,
 .primaryButton,
 .selectWrap select {
@@ -153,6 +154,7 @@
   justify-content: flex-end;
 }
 
+.planButton,
 .ghostButton,
 .primaryButton {
   display: inline-flex;
@@ -162,6 +164,21 @@
   min-height: 38px;
   padding: 0 18px;
   font-weight: 750;
+  white-space: nowrap;
+}
+
+.planButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 38px;
+  padding: 0 14px;
+  border: 1px solid #d8b04c;
+  border-radius: 8px;
+  color: #76540a;
+  background: #fff8dc;
+  font-weight: 800;
   white-space: nowrap;
 }
 
@@ -231,6 +248,7 @@
 
   .formationButton,
   .selectWrap select,
+  .planButton,
   .ghostButton,
   .primaryButton {
     min-height: 46px;
@@ -243,6 +261,7 @@
   .controlGroup,
   .moreGroup,
   .topActions,
+  .planButton,
   .ghostButton,
   .primaryButton {
     width: 100%;

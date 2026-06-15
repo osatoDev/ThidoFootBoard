@@ -1,5 +1,5 @@
 import { formations } from "./formations";
-import type { FormationName, ImportedLineupPlayer, Player } from "./types";
+import type { FormationName, Player } from "./types";
 
 export const DEFAULT_FORMATION: FormationName = "4-2-3-1";
 
@@ -57,68 +57,6 @@ export function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
 }
 
-export function todayInputValue() {
-  return new Date().toISOString().slice(0, 10);
-}
-
 export function isFormationName(value: string): value is FormationName {
   return Object.prototype.hasOwnProperty.call(formations, value);
-}
-
-export function normalizeTeamText(value: string) {
-  return value
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9]+/g, " ")
-    .trim();
-}
-
-export function teamNameMatches(sourceName: string, queryName: string) {
-  const source = normalizeTeamText(sourceName);
-  const query = normalizeTeamText(queryName);
-  return source.includes(query) || query.includes(source);
-}
-
-export function mapGridToPitchPlayers(importedPlayers: ImportedLineupPlayer[]): Player[] {
-  const parsedGrid = importedPlayers.map((player) => {
-    const [rowValue, columnValue] = player.grid.split(":").map(Number);
-    return {
-      player,
-      row: Number.isFinite(rowValue) ? rowValue : null,
-      column: Number.isFinite(columnValue) ? columnValue : null,
-    };
-  });
-
-  const rows = parsedGrid
-    .map((entry) => entry.row)
-    .filter((row): row is number => row !== null && row > 0);
-  const maxRow = Math.max(...rows, 1);
-
-  const columnsByRow = parsedGrid.reduce<Record<number, number>>((columns, entry) => {
-    if (entry.row && entry.column) {
-      columns[entry.row] = Math.max(columns[entry.row] ?? 0, entry.column);
-    }
-    return columns;
-  }, {});
-
-  return parsedGrid.map(({ player, row, column }) => {
-    if (!row || !column) {
-      return {
-        name: player.name,
-        number: player.number,
-      };
-    }
-
-    const columnsInRow = columnsByRow[row] || 1;
-    const x = columnsInRow === 1 ? 50 : (column / (columnsInRow + 1)) * 100;
-    const y = maxRow === 1 ? 90 : 90 - ((row - 1) / (maxRow - 1)) * 68;
-
-    return {
-      name: player.name,
-      number: player.number,
-      customX: Number(clamp(x, 10, 90).toFixed(2)),
-      customY: Number(clamp(y, 18, 92).toFixed(2)),
-    };
-  });
 }
