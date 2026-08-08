@@ -2,6 +2,7 @@ import { useState } from "react";
 
 import styles from "./App.module.css";
 import { EditorPanel } from "./components/EditorPanel/EditorPanel";
+import { HowItWorksModal } from "./components/HowItWorksModal/HowItWorksModal";
 import { LibraryPanel } from "./components/LibraryPanel/LibraryPanel";
 import { MatchImportPanel } from "./components/MatchImportPanel/MatchImportPanel";
 import { PitchPanel } from "./components/PitchPanel/PitchPanel";
@@ -11,6 +12,7 @@ import { useLineupBuilder } from "./hooks/useLineupBuilder";
 import { useSubscription } from "./subscription";
 
 function App() {
+  const [isHowItWorksOpen, setIsHowItWorksOpen] = useState(false);
   const [isPricingOpen, setIsPricingOpen] = useState(false);
   const subscription = useSubscription();
   const { editorPanelProps, libraryPanelProps, matchImportPanelProps, pitchPanelProps, topBarProps } =
@@ -22,6 +24,7 @@ function App() {
         {...topBarProps}
         hasPremiumAccess={subscription.hasPremiumAccess}
         isLocalhost={subscription.isLocalhost}
+        onOpenHowItWorks={() => setIsHowItWorksOpen(true)}
         onOpenPricing={() => setIsPricingOpen(true)}
       />
 
@@ -49,6 +52,8 @@ function App() {
           plan={subscription.plan}
         />
       ) : null}
+
+      {isHowItWorksOpen ? <HowItWorksModal onClose={() => setIsHowItWorksOpen(false)} /> : null}
     </main>
   );
 }

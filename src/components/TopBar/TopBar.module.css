@@ -36,13 +36,47 @@
   font-weight: 700;
 }
 
+.brandCopy {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.brandMeta {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
 .eyebrow {
-  margin: 0 0 2px;
+  margin: 0;
   color: #0f8f59;
   font-size: 0.72rem;
   font-weight: 800;
   letter-spacing: 0;
   text-transform: uppercase;
+}
+
+.howItWorksButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  color: #64748b;
+  background: transparent;
+  font-size: 0.72rem;
+  font-weight: 750;
+  white-space: nowrap;
+}
+
+.howItWorksButton:hover {
+  color: #087f4f;
+}
+
+.howItWorksButton:focus-visible {
+  border-radius: 4px;
+  outline: 2px solid #10b981;
+  outline-offset: 3px;
 }
 
 .heading {

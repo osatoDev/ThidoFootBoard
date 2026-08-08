@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1080" viewBox="0 0 1080 1080" role="img" aria-labelledby="title desc">
+  <title id="title">Thido Instagram profile mark</title>
+  <desc id="desc">A centered green football pitch icon with a white letter T, sized for Instagram profile images.</desc>
+  <defs>
+    <linearGradient id="background" x1="160" y1="40" x2="920" y2="1040" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#f7fff9"/>
+      <stop offset="1" stop-color="#dff8e9"/>
+    </linearGradient>
+    <linearGradient id="mark-bg" x1="540" y1="292" x2="540" y2="788" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#13985c"/>
+      <stop offset="1" stop-color="#065f35"/>
+    </linearGradient>
+    <filter id="mark-shadow" x="236" y="246" width="608" height="662" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="44" stdDeviation="36" flood-color="#064e3b" flood-opacity=".22"/>
+    </filter>
+  </defs>
+
+  <rect width="1080" height="1080" fill="url(#background)"/>
+  <g filter="url(#mark-shadow)">
+    <rect x="292" y="292" width="496" height="496" rx="139" fill="url(#mark-bg)"/>
+    <rect x="317" y="317" width="446" height="446" rx="114" fill="none" stroke="#fff" stroke-opacity=".34" stroke-width="20"/>
+    <path d="M466 401h149v40h-55v238h-45V441h-49z" fill="#fff"/>
+    <path d="M456 421c0-11 9-20 20-20h129c11 0 20 9 20 20v5H456z" fill="#fff" opacity=".22"/>
+    <path d="M456 540h168" fill="none" stroke="#fff" stroke-linecap="round" stroke-opacity=".32" stroke-width="15"/>
+    <path d="M500 366v347M580 366v347" fill="none" stroke="#fff" stroke-linecap="round" stroke-opacity=".32" stroke-width="10"/>
+  </g>
+</svg>

@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="540" height="128" viewBox="0 0 540 128" role="img" aria-labelledby="title desc">
+  <title id="title">Thido Lineup Builder logo</title>
+  <desc id="desc">A green football pitch mark with a white T beside the Thido Lineup Builder wordmark.</desc>
+  <defs>
+    <linearGradient id="mark-bg" x1="32" y1="14" x2="32" y2="114" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#13985c"/>
+      <stop offset="1" stop-color="#065f35"/>
+    </linearGradient>
+    <filter id="mark-shadow" x="5" y="7" width="118" height="125" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="12" stdDeviation="11" flood-color="#064e3b" flood-opacity=".22"/>
+    </filter>
+  </defs>
+
+  <g filter="url(#mark-shadow)">
+    <rect x="14" y="14" width="100" height="100" rx="28" fill="url(#mark-bg)"/>
+    <rect x="19" y="19" width="90" height="90" rx="23" fill="none" stroke="#fff" stroke-opacity=".34" stroke-width="4"/>
+    <path d="M49 36h30v8H68v48h-9V44H49z" fill="#fff"/>
+    <path d="M47 40c0-2.2 1.8-4 4-4h26c2.2 0 4 1.8 4 4v1H47z" fill="#fff" opacity=".22"/>
+    <path d="M47 64h34" fill="none" stroke="#fff" stroke-linecap="round" stroke-opacity=".32" stroke-width="3"/>
+    <path d="M56 29v70M72 29v70" fill="none" stroke="#fff" stroke-linecap="round" stroke-opacity=".32" stroke-width="2"/>
+  </g>
+
+  <g>
+    <text x="140" y="57" fill="#0f8f59" font-family="Inter, Arial, sans-serif" font-size="21" font-weight="800" letter-spacing="0">THIDO</text>
+    <text x="140" y="91" fill="#101828" font-family="Inter, Arial, sans-serif" font-size="34" font-weight="800" letter-spacing="0">LINEUP BUILDER</text>
+  </g>
+</svg>

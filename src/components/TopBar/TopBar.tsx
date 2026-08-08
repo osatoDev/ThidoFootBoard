@@ -1,4 +1,4 @@
-import { ChevronDown, Crown, Download, RefreshCcw } from "lucide-react";
+import { ChevronDown, CircleHelp, Crown, Download, RefreshCcw } from "lucide-react";
 
 import { moreFormations, quickFormations } from "../../formations";
 import type { FormationName } from "../../types";
@@ -11,6 +11,7 @@ type TopBarProps = {
   onClearLineup: () => void;
   onExportPitchImage: () => void;
   onFormationChange: (formation: FormationName) => void;
+  onOpenHowItWorks: () => void;
   onOpenPricing: () => void;
 };
 
@@ -25,6 +26,7 @@ export function TopBar({
   onClearLineup,
   onExportPitchImage,
   onFormationChange,
+  onOpenHowItWorks,
   onOpenPricing,
 }: TopBarProps) {
   return (
@@ -33,8 +35,14 @@ export function TopBar({
         <div className={styles.brandMark} aria-hidden="true">
           <span>T</span>
         </div>
-        <div>
-          <p className={styles.eyebrow}>Thido</p>
+        <div className={styles.brandCopy}>
+          <div className={styles.brandMeta}>
+            <p className={styles.eyebrow}>Thido</p>
+            <button className={styles.howItWorksButton} onClick={onOpenHowItWorks} type="button">
+              <CircleHelp size={14} aria-hidden="true" />
+              How it works
+            </button>
+          </div>
           <h1 className={styles.heading}>Lineup Builder</h1>
         </div>
       </div>
