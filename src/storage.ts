@@ -41,6 +41,13 @@ function isBlankLineup(lineup: Partial<CurrentLineup>) {
   return !lineup.players?.some(hasPlayerDetails);
 }
 
+function isNumberedPlaceholderLineup(lineup: Partial<CurrentLineup>) {
+  return (
+    lineup.players?.length === 11 &&
+    lineup.players.every((player, index) => !player.name.trim() && player.number === String(index + 1))
+  );
+}
+
 function isOldSampleLineup(lineup: Partial<CurrentLineup>) {
   return (
     lineup.formation === "4-3-3" &&
@@ -57,7 +64,7 @@ export function loadCurrentLineup(): CurrentLineup {
     }
 
     const parsed = JSON.parse(raw) as Partial<CurrentLineup>;
-    if (isOldSampleLineup(parsed) || isBlankLineup(parsed)) {
+    if (isOldSampleLineup(parsed) || isBlankLineup(parsed) || isNumberedPlaceholderLineup(parsed)) {
       throw new Error("Stored lineup should use the default");
     }
 

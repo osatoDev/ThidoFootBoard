@@ -1,6 +1,7 @@
 import { Download, FileInput, PencilRuler, X } from "lucide-react";
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 
+import { useDialogAccessibility } from "../../hooks/useDialogAccessibility";
 import styles from "./HowItWorksModal.module.css";
 
 type HowItWorksModalProps = {
@@ -30,19 +31,8 @@ const steps = [
 
 export function HowItWorksModal({ onClose }: HowItWorksModalProps) {
   const closeButtonRef = useRef<HTMLButtonElement>(null);
-
-  useEffect(() => {
-    closeButtonRef.current?.focus();
-
-    function closeOnEscape(event: KeyboardEvent) {
-      if (event.key === "Escape") {
-        onClose();
-      }
-    }
-
-    window.addEventListener("keydown", closeOnEscape);
-    return () => window.removeEventListener("keydown", closeOnEscape);
-  }, [onClose]);
+  const dialogRef = useRef<HTMLElement>(null);
+  useDialogAccessibility(dialogRef, closeButtonRef, onClose);
 
   return (
     <div className={styles.backdrop} onMouseDown={onClose} role="presentation">
@@ -51,6 +41,7 @@ export function HowItWorksModal({ onClose }: HowItWorksModalProps) {
         aria-modal="true"
         className={styles.modal}
         onMouseDown={(event) => event.stopPropagation()}
+        ref={dialogRef}
         role="dialog"
       >
         <header className={styles.header}>

@@ -1,41 +1,21 @@
-import { ChevronDown, Crown, Download } from "lucide-react";
-import { useState } from "react";
+import { ClipboardPaste, Crown, FileJson, Image, Search } from "lucide-react";
 
-import type { ManualLineupImport } from "../../types";
-import {
-  LineupImportModal,
-  type LineupImportMethod,
-} from "../LineupImportModal/LineupImportModal";
+import type { LineupImportMethod } from "../LineupImportModal/LineupImportModal";
 import styles from "./MatchImportPanel.module.css";
 
 type MatchImportPanelProps = {
   hasPremiumAccess: boolean;
   matchImportStatus: string;
-  onImportLineup: (lineup: ManualLineupImport) => void;
+  onOpenImport: (method: LineupImportMethod) => void;
   onOpenPricing: () => void;
 };
 
 export function MatchImportPanel({
   hasPremiumAccess,
   matchImportStatus,
-  onImportLineup,
+  onOpenImport,
   onOpenPricing,
 }: MatchImportPanelProps) {
-  const [importMethod, setImportMethod] = useState<LineupImportMethod | null>(null);
-
-  function openImportMethod(value: string) {
-    if (!value) {
-      return;
-    }
-
-    if ((value === "screenshot" || value === "match") && !hasPremiumAccess) {
-      onOpenPricing();
-      return;
-    }
-
-    setImportMethod(value as LineupImportMethod);
-  }
-
   return (
     <section className={styles.matchImportPanel} aria-label="Lineup import">
       <div className={styles.matchImportHeader}>
@@ -43,20 +23,28 @@ export function MatchImportPanel({
           <span>Lineup Import</span>
           <strong>Choose a source</strong>
         </div>
-        <Download size={20} aria-hidden="true" />
+        <Search size={20} aria-hidden="true" />
       </div>
 
-      <label className={`${styles.selectWrap} ${styles.importMethodSelect}`}>
-        <Download size={17} aria-hidden="true" />
-        <select aria-label="Import lineup" onChange={(event) => openImportMethod(event.target.value)} value="">
-          <option value="">Import lineup</option>
-          <option value="screenshot">Upload screenshot (Premium)</option>
-          <option value="match">Find match lineup with AI (Premium)</option>
-          <option value="file">Import CSV or JSON</option>
-          <option value="text">Paste text</option>
-        </select>
-        <ChevronDown size={16} aria-hidden="true" />
-      </label>
+      <div className={styles.importGrid}>
+        <button className={styles.primaryImport} onClick={() => onOpenImport("match")} type="button">
+          <Search size={17} aria-hidden="true" />
+          Find match
+          {!hasPremiumAccess ? <Crown size={13} aria-label="Premium" /> : null}
+        </button>
+        <button onClick={() => onOpenImport("screenshot")} type="button">
+          <Image size={17} aria-hidden="true" />
+          Screenshot
+        </button>
+        <button onClick={() => onOpenImport("text")} type="button">
+          <ClipboardPaste size={17} aria-hidden="true" />
+          Paste squad
+        </button>
+        <button onClick={() => onOpenImport("file")} type="button">
+          <FileJson size={17} aria-hidden="true" />
+          CSV / JSON
+        </button>
+      </div>
 
       {!hasPremiumAccess ? (
         <button className={styles.premiumNotice} onClick={onOpenPricing} type="button">
@@ -67,13 +55,6 @@ export function MatchImportPanel({
 
       {matchImportStatus ? <p className={styles.matchImportStatus}>{matchImportStatus}</p> : null}
 
-      {importMethod ? (
-        <LineupImportModal
-          method={importMethod}
-          onClose={() => setImportMethod(null)}
-          onImportLineup={onImportLineup}
-        />
-      ) : null}
     </section>
   );
 }

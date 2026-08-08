@@ -1,6 +1,7 @@
 import { Check, Crown, X } from "lucide-react";
-import { useEffect } from "react";
+import { useRef } from "react";
 
+import { useDialogAccessibility } from "../../hooks/useDialogAccessibility";
 import type { SubscriptionPlan } from "../../subscription";
 import styles from "./PricingModal.module.css";
 
@@ -20,15 +21,9 @@ const premiumFeatures = [
 ];
 
 export function PricingModal({ isLocalhost, onClose, onSelectPlan, plan }: PricingModalProps) {
-  useEffect(() => {
-    function closeOnEscape(event: KeyboardEvent) {
-      if (event.key === "Escape") {
-        onClose();
-      }
-    }
-    window.addEventListener("keydown", closeOnEscape);
-    return () => window.removeEventListener("keydown", closeOnEscape);
-  }, [onClose]);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const dialogRef = useRef<HTMLElement>(null);
+  useDialogAccessibility(dialogRef, closeButtonRef, onClose);
 
   function choosePremium() {
     onSelectPlan("premium");
@@ -42,6 +37,7 @@ export function PricingModal({ isLocalhost, onClose, onSelectPlan, plan }: Prici
         aria-modal="true"
         className={styles.modal}
         onMouseDown={(event) => event.stopPropagation()}
+        ref={dialogRef}
         role="dialog"
       >
         <header>
@@ -50,7 +46,7 @@ export function PricingModal({ isLocalhost, onClose, onSelectPlan, plan }: Prici
             <h2 id="pricing-title">Choose how you build</h2>
             <p>Start free and unlock faster lineup imports when you need them.</p>
           </div>
-          <button aria-label="Close pricing" className={styles.closeButton} onClick={onClose} type="button">
+          <button aria-label="Close pricing" className={styles.closeButton} onClick={onClose} ref={closeButtonRef} type="button">
             <X size={20} aria-hidden="true" />
           </button>
         </header>

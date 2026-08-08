@@ -1,6 +1,6 @@
 .topBar {
   display: grid;
-  grid-template-columns: minmax(240px, 0.75fr) minmax(520px, 1.45fr) auto;
+  grid-template-columns: minmax(240px, 1fr) auto;
   gap: 18px;
   align-items: center;
   margin: 0 auto 10px;
@@ -131,11 +131,10 @@
   gap: 10px;
 }
 
-.formationButton,
+.importButton,
 .planButton,
 .ghostButton,
-.primaryButton,
-.selectWrap select {
+.primaryButton {
   min-height: 52px;
   border: 1px solid #d5dce0;
   border-radius: 8px;
@@ -144,42 +143,11 @@
   box-shadow: 0 10px 24px rgba(15, 23, 42, 0.04);
 }
 
-.formationButton {
-  min-width: 82px;
-  min-height: 38px;
-  padding: 0 16px;
-  font-size: 0.94rem;
-  font-weight: 800;
-}
-
-.formationButton.active,
 .primaryButton {
   border-color: #087f4f;
   color: #ffffff;
   background: linear-gradient(180deg, #078a54 0%, #006b3f 100%);
   box-shadow: 0 18px 32px rgba(0, 107, 63, 0.24);
-}
-
-.selectWrap {
-  position: relative;
-  display: block;
-}
-
-.selectWrap select {
-  width: 100%;
-  min-width: 184px;
-  min-height: 38px;
-  appearance: none;
-  padding: 0 42px 0 18px;
-  font-weight: 650;
-}
-
-.selectWrap svg {
-  position: absolute;
-  top: 50%;
-  right: 18px;
-  pointer-events: none;
-  transform: translateY(-50%);
 }
 
 .topActions {
@@ -188,6 +156,7 @@
   justify-content: flex-end;
 }
 
+.importButton,
 .planButton,
 .ghostButton,
 .primaryButton {
@@ -199,6 +168,12 @@
   padding: 0 18px;
   font-weight: 750;
   white-space: nowrap;
+}
+
+.importButton {
+  border-color: #b8dfce;
+  color: #087f4f;
+  background: #f0fdf4;
 }
 
 .planButton {
@@ -217,25 +192,8 @@
 }
 
 @media (max-width: 1320px) {
-  .topBar {
-    grid-template-columns: auto minmax(0, 1fr) auto;
-  }
-
   .topActions {
-    justify-content: flex-start;
-    grid-column: 3;
-    grid-row: 1;
-  }
-
-  .formationControls {
-    grid-column: 2;
-    grid-row: 1;
-    justify-content: flex-start;
-    gap: 14px;
-  }
-
-  .controlGroup > span {
-    display: none;
+    flex-wrap: wrap;
   }
 }
 
@@ -244,29 +202,13 @@
     grid-template-columns: 1fr;
   }
 
-  .topActions,
-  .formationControls {
+  .topActions {
     grid-column: 1;
     grid-row: auto;
   }
 
-  .formationControls,
-  .buttonRow,
   .topActions {
     flex-wrap: wrap;
-  }
-
-  .controlGroup > span {
-    justify-content: flex-start;
-  }
-
-  .controlGroup > span::before,
-  .controlGroup > span::after {
-    width: 42px;
-  }
-
-  .formationButton {
-    min-width: 104px;
   }
 }
 
@@ -280,21 +222,15 @@
     height: 54px;
   }
 
-  .formationButton,
-  .selectWrap select,
+  .importButton,
   .planButton,
   .ghostButton,
   .primaryButton {
     min-height: 46px;
   }
 
-  .selectWrap select {
-    min-width: 100%;
-  }
-
-  .controlGroup,
-  .moreGroup,
   .topActions,
+  .importButton,
   .planButton,
   .ghostButton,
   .primaryButton {

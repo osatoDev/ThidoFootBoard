@@ -1,6 +1,6 @@
 .libraryPanel {
   display: grid;
-  gap: 10px;
+  gap: 11px;
   margin-top: auto;
   padding-top: 16px;
   border-top: 1px solid #e5e7eb;
@@ -9,83 +9,129 @@
 .libraryHeader {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 10px;
+}
+
+.libraryHeader > div {
+  display: flex;
+  align-items: center;
+  gap: 9px;
   color: #334155;
   font-size: 0.94rem;
   font-weight: 800;
 }
 
-.saveGrid {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 42px;
-  gap: 10px;
+.libraryHeader em {
+  color: #087f4f;
+  font-size: 0.69rem;
+  font-style: normal;
+  font-weight: 800;
 }
 
-.libraryPanel input,
-.librarySelect select {
+.saveGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+}
+
+.saveGrid > input,
+.lineupCopy input {
   width: 100%;
+  min-width: 0;
   min-height: 40px;
+  padding: 0 12px;
   border: 1px solid #d8dee3;
   border-radius: 8px;
   outline: none;
   color: #111827;
   background: #ffffff;
-  box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.03);
-  transition:
-    border-color 140ms ease,
-    box-shadow 140ms ease;
 }
 
-.libraryPanel input {
-  padding: 0 14px;
-}
-
-.libraryPanel input:focus,
-.librarySelect select:focus {
+.saveGrid > input:focus,
+.lineupCopy input:focus {
   border-color: #099268;
   box-shadow: 0 0 0 4px rgba(9, 146, 104, 0.14);
 }
 
-.selectWrap {
-  position: relative;
-  display: block;
-}
-
-.selectWrap svg {
-  position: absolute;
-  top: 50%;
-  right: 18px;
-  pointer-events: none;
-  transform: translateY(-50%);
-}
-
-.librarySelect select {
-  min-width: 100%;
-  appearance: none;
-  padding: 0 42px 0 14px;
-  font-weight: 600;
-}
-
-.saveButton,
-.deleteButton {
-  display: grid;
-  width: 40px;
-  min-width: 40px;
-  min-height: 40px;
-  place-items: center;
-  padding: 0;
-  border: 1px solid #d5dce0;
-  border-radius: 8px;
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.04);
-}
-
 .saveButton {
-  border-color: #087f4f;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: 8px;
   color: #ffffff;
   background: #087f4f;
+  font-weight: 800;
 }
 
-.deleteButton {
-  color: #9f1239;
-  background: #fff7f8;
+.lineupList {
+  display: grid;
+  gap: 7px;
+  max-height: 244px;
+  overflow: auto;
+}
+
+.lineupCard {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+  padding: 9px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #f8fafc;
+}
+
+.lineupCard.selected {
+  border-color: #86c8aa;
+  background: #f0fdf4;
+}
+
+.lineupCopy {
+  display: grid;
+  gap: 3px;
+}
+
+.lineupCopy input {
+  min-height: 28px;
+  padding: 0 7px;
+  border-color: transparent;
+  background: transparent;
+  font-size: 0.84rem;
+  font-weight: 800;
+}
+
+.lineupCopy span {
+  padding-left: 7px;
+  color: #94a3b8;
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+.cardActions {
+  display: flex;
+  gap: 4px;
+}
+
+.cardActions button {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  border: 1px solid #d8dee3;
+  border-radius: 7px;
+  color: #475569;
+  background: #ffffff;
+}
+
+.cardActions .deleteButton { color: #b42318; }
+.emptyState { margin: 4px 0; color: #94a3b8; font-size: 0.78rem; text-align: center; }
+
+@media (max-width: 540px) {
+  .libraryHeader { align-items: flex-start; flex-direction: column; }
+  .lineupCard { align-items: start; grid-template-columns: 1fr; }
+  .cardActions { justify-content: flex-end; }
 }

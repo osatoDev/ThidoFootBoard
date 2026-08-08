@@ -4,7 +4,7 @@ import type { FormationName, Player } from "./types";
 export const DEFAULT_FORMATION: FormationName = "4-2-3-1";
 
 export function createEmptyPlayers(): Player[] {
-  return Array.from({ length: 11 }, (_, index) => ({ name: "", number: String(index + 1) }));
+  return Array.from({ length: 11 }, () => ({ name: "", number: "" }));
 }
 
 export function stripCustomPositions(players: Player[]): Player[] {

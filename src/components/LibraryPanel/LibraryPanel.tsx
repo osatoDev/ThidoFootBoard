@@ -1,33 +1,39 @@
-import { ChevronDown, FolderOpen, Save, Trash2 } from "lucide-react";
-import type { Dispatch, SetStateAction } from "react";
+import { ArrowUpRight, Copy, FolderOpen, Save, Trash2 } from "lucide-react";
+import { type Dispatch, type KeyboardEvent, type SetStateAction, useEffect, useState } from "react";
 
 import type { SavedLineup } from "../../types";
 import styles from "./LibraryPanel.module.css";
 
 type LibraryPanelProps = {
   lineupName: string;
-  onDeleteLineup: () => void;
+  onDeleteLineup: (id: string) => void;
+  onDuplicateLineup: (id: string) => void;
   onLoadLineup: (id: string) => void;
+  onRenameLineup: (id: string, name: string) => void;
   onSaveLineup: () => void;
   savedLineups: SavedLineup[];
   selectedSavedId: string;
+  saveState: string;
   setLineupName: Dispatch<SetStateAction<string>>;
 };
 
 export function LibraryPanel({
   lineupName,
   onDeleteLineup,
+  onDuplicateLineup,
   onLoadLineup,
+  onRenameLineup,
   onSaveLineup,
   savedLineups,
   selectedSavedId,
+  saveState,
   setLineupName,
 }: LibraryPanelProps) {
   return (
     <div className={styles.libraryPanel}>
       <div className={styles.libraryHeader}>
-        <FolderOpen size={18} aria-hidden="true" />
-        <span>Lineups</span>
+        <div><FolderOpen size={18} aria-hidden="true" /><span>Your lineups</span></div>
+        <em>{saveState}</em>
       </div>
       <div className={styles.saveGrid}>
         <input
@@ -37,32 +43,83 @@ export function LibraryPanel({
           type="text"
           value={lineupName}
         />
-        <button className={styles.saveButton} onClick={onSaveLineup} type="button" aria-label="Save lineup">
+        <button className={styles.saveButton} onClick={onSaveLineup} type="button">
           <Save size={18} aria-hidden="true" />
+          {selectedSavedId ? "Update" : "Save"}
         </button>
       </div>
-      <div className={styles.saveGrid}>
-        <label className={`${styles.selectWrap} ${styles.librarySelect}`}>
-          <select aria-label="Saved lineups" onChange={(event) => onLoadLineup(event.target.value)} value={selectedSavedId}>
-            <option value="">Saved lineups</option>
-            {savedLineups.map((lineup) => (
-              <option key={lineup.id} value={lineup.id}>
-                {lineup.name}
-              </option>
-            ))}
-          </select>
-          <ChevronDown size={17} aria-hidden="true" />
-        </label>
-        <button
-          className={styles.deleteButton}
-          disabled={!selectedSavedId}
-          onClick={onDeleteLineup}
-          type="button"
-          aria-label="Delete saved lineup"
-        >
-          <Trash2 size={18} aria-hidden="true" />
-        </button>
+      <div className={styles.lineupList} aria-label="Saved lineup library">
+        {savedLineups.length === 0 ? (
+          <p className={styles.emptyState}>Saved lineups will appear here for quick access.</p>
+        ) : (
+          savedLineups.slice(0, 6).map((lineup) => (
+            <LineupCard
+              isSelected={selectedSavedId === lineup.id}
+              key={lineup.id}
+              lineup={lineup}
+              onDelete={onDeleteLineup}
+              onDuplicate={onDuplicateLineup}
+              onOpen={onLoadLineup}
+              onRename={onRenameLineup}
+            />
+          ))
+        )}
       </div>
     </div>
+  );
+}
+
+type LineupCardProps = {
+  isSelected: boolean;
+  lineup: SavedLineup;
+  onDelete: (id: string) => void;
+  onDuplicate: (id: string) => void;
+  onOpen: (id: string) => void;
+  onRename: (id: string, name: string) => void;
+};
+
+function LineupCard({ isSelected, lineup, onDelete, onDuplicate, onOpen, onRename }: LineupCardProps) {
+  const [draftName, setDraftName] = useState(lineup.name);
+
+  useEffect(() => setDraftName(lineup.name), [lineup.name]);
+
+  function commitName() {
+    if (draftName.trim() && draftName.trim() !== lineup.name) {
+      onRename(lineup.id, draftName);
+    } else {
+      setDraftName(lineup.name);
+    }
+  }
+
+  function handleNameKeyDown(event: KeyboardEvent<HTMLInputElement>) {
+    if (event.key === "Enter") {
+      event.currentTarget.blur();
+    }
+  }
+
+  return (
+    <article className={`${styles.lineupCard} ${isSelected ? styles.selected : ""}`}>
+      <div className={styles.lineupCopy}>
+        <input
+          aria-label={`Rename ${lineup.name}`}
+          onBlur={commitName}
+          onChange={(event) => setDraftName(event.target.value)}
+          onKeyDown={handleNameKeyDown}
+          value={draftName}
+        />
+        <span>{lineup.formation} · {new Date(lineup.updatedAt ?? lineup.createdAt).toLocaleDateString()}</span>
+      </div>
+      <div className={styles.cardActions}>
+        <button aria-label={`Open ${lineup.name}`} onClick={() => onOpen(lineup.id)} type="button">
+          <ArrowUpRight size={16} aria-hidden="true" />
+        </button>
+        <button aria-label={`Duplicate ${lineup.name}`} onClick={() => onDuplicate(lineup.id)} type="button">
+          <Copy size={15} aria-hidden="true" />
+        </button>
+        <button aria-label={`Delete ${lineup.name}`} className={styles.deleteButton} onClick={() => onDelete(lineup.id)} type="button">
+          <Trash2 size={15} aria-hidden="true" />
+        </button>
+      </div>
+    </article>
   );
 }

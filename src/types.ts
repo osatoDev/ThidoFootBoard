@@ -31,6 +31,7 @@ export type SavedLineup = {
   substitutes: Player[];
   arrows?: MovementArrow[];
   createdAt: number;
+  updatedAt?: number;
 };
 
 export type PitchTheme = "classic" | "dark";

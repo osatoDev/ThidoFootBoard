@@ -2,21 +2,24 @@ import {
   ArrowRight,
   ChevronDown,
   MousePointer2,
+  SlidersHorizontal,
   Trash2,
   UserRound,
   X,
 } from "lucide-react";
-import type {
-  CSSProperties,
-  Dispatch,
-  MouseEvent,
-  PointerEvent,
-  RefObject,
-  SetStateAction,
+import {
+  useState,
+  type CSSProperties,
+  type Dispatch,
+  type MouseEvent,
+  type PointerEvent,
+  type ReactNode,
+  type RefObject,
+  type SetStateAction,
 } from "react";
 
 import { moreFormations, quickFormations } from "../../formations";
-import { hasPlayerDetails, shortName } from "../../playerUtils";
+import { shortName } from "../../playerUtils";
 import type {
   ArrowStyle,
   FormationName,
@@ -70,6 +73,7 @@ type PitchPanelProps = {
   setPlayerBadges: Dispatch<SetStateAction<boolean>>;
   setSelectedPlayerIndex: Dispatch<SetStateAction<number | null>>;
   startArrowFromPlayer: (index: number) => void;
+  starterOverlay?: ReactNode;
 };
 
 function cx(...classes: Array<string | false>) {
@@ -113,8 +117,11 @@ export function PitchPanel({
   setPlayerBadges,
   setSelectedPlayerIndex,
   startArrowFromPlayer,
+  starterOverlay,
 }: PitchPanelProps) {
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const visibleArrows = draftArrow ? [...arrows, draftArrow] : arrows;
+  const showArrowOptions = isDrawingArrows || selectedArrowId !== null || arrows.length > 0;
 
   return (
     <section
@@ -161,6 +168,16 @@ export function PitchPanel({
             <span>Arrow</span>
           </button>
         </div>
+
+        <button
+          aria-expanded={isSettingsOpen}
+          aria-label="Toggle pitch settings"
+          className={styles.settingsButton}
+          onClick={() => setIsSettingsOpen((current) => !current)}
+          type="button"
+        >
+          <SlidersHorizontal size={18} aria-hidden="true" />
+        </button>
       </div>
 
       <div className={styles.pitch} ref={pitchRef}>
@@ -270,10 +287,6 @@ export function PitchPanel({
         </svg>
 
         {players.map((player, index) => {
-          if (!hasPlayerDetails(player)) {
-            return null;
-          }
-
           const position = positionSet[index];
           const x = player.customX ?? position.x;
           const y = player.customY ?? position.y;
@@ -283,7 +296,7 @@ export function PitchPanel({
 
           return (
             <button
-              aria-label={`Player ${player.number || index + 1} ${position.role}`}
+              aria-label={player.name ? `${player.name}, ${position.role}` : `Empty ${position.role} position`}
               className={cx(
                 styles.playerMarker,
                 isSelected && styles.selected,
@@ -309,7 +322,7 @@ export function PitchPanel({
             >
               <span className={styles.playerDisc}>
                 {playerBadges ? (
-                  player.number || index + 1
+                  player.number || position.role
                 ) : (
                   <UserRound size={28} aria-hidden="true" />
                 )}
@@ -322,7 +335,7 @@ export function PitchPanel({
         })}
       </div>
 
-      <div className={styles.pitchOptions}>
+      <div className={cx(styles.pitchOptions, isSettingsOpen && styles.open)}>
         <div className={styles.pitchOptionGroup}>
           <div
             className={styles.segmentedControl}
@@ -355,7 +368,7 @@ export function PitchPanel({
           </button>
         </div>
 
-        <div className={styles.arrowOptions} aria-label="Arrow options">
+        {showArrowOptions ? <div className={styles.arrowOptions} aria-label="Arrow options">
           <div className={styles.arrowColorRow}>
             {arrowColors.map((color) => (
               <button
@@ -411,8 +424,10 @@ export function PitchPanel({
             <X size={18} aria-hidden="true" />
             <span>Clear arrows</span>
           </button>
-        </div>
+        </div> : null}
       </div>
+
+      {starterOverlay ? <div className={styles.starterOverlay}>{starterOverlay}</div> : null}
     </section>
   );
 }

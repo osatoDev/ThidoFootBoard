@@ -2,6 +2,7 @@ import { ExternalLink, FileJson, Image, LoaderCircle, Plus, Search, Sparkles, Tr
 import { ChangeEvent, Dispatch, SetStateAction, useEffect, useMemo, useRef, useState } from "react";
 
 import { formations } from "../../formations";
+import { useDialogAccessibility } from "../../hooks/useDialogAccessibility";
 import { parseCsvLineup, parseJsonLineup, parseTextLineup } from "../../lineupImport";
 import {
   extractLineupScreenshot,
@@ -41,6 +42,8 @@ export function LineupImportModal({
   const [approximateDate, setApproximateDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [teamToImport, setTeamToImport] = useState<"teamA" | "teamB">("teamA");
   const extractionControllerRef = useRef<AbortController | null>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const dialogRef = useRef<HTMLElement>(null);
   const previewUrl = useMemo(
     () => (method === "screenshot" && file ? URL.createObjectURL(file) : ""),
     [file, method],
@@ -55,15 +58,7 @@ export function LineupImportModal({
     };
   }, [previewUrl]);
 
-  useEffect(() => {
-    function closeOnEscape(event: KeyboardEvent) {
-      if (event.key === "Escape") {
-        onClose();
-      }
-    }
-    window.addEventListener("keydown", closeOnEscape);
-    return () => window.removeEventListener("keydown", closeOnEscape);
-  }, [onClose]);
+  useDialogAccessibility(dialogRef, closeButtonRef, onClose);
 
   function selectFile(event: ChangeEvent<HTMLInputElement>) {
     setFile(event.target.files?.[0] ?? null);
@@ -202,6 +197,7 @@ export function LineupImportModal({
         aria-modal="true"
         className={styles.modal}
         onMouseDown={(event) => event.stopPropagation()}
+        ref={dialogRef}
         role="dialog"
       >
         <header>
@@ -209,7 +205,7 @@ export function LineupImportModal({
             <span>Import lineup</span>
             <h2 id="lineup-import-title">{methodTitles[method]}</h2>
           </div>
-          <button aria-label="Close import modal" className={styles.closeButton} onClick={onClose} type="button">
+          <button aria-label="Close import modal" className={styles.closeButton} onClick={onClose} ref={closeButtonRef} type="button">
             <X size={20} aria-hidden="true" />
           </button>
         </header>
@@ -263,7 +259,7 @@ export function LineupImportModal({
                   <input
                     autoFocus
                     onChange={(event) => setTeamA(event.target.value)}
-                    placeholder="Arsenal"
+                    placeholder="Home team"
                     type="text"
                     value={teamA}
                   />
@@ -272,7 +268,7 @@ export function LineupImportModal({
                   <span>Team B</span>
                   <input
                     onChange={(event) => setTeamB(event.target.value)}
-                    placeholder="Tottenham"
+                    placeholder="Away team"
                     type="text"
                     value={teamB}
                   />
@@ -329,12 +325,13 @@ export function LineupImportModal({
               Paste a starting XI, then add a line beginning with “Substitutes:” or “Bench:” for the remaining players.
             </p>
             <textarea
+              aria-label="Lineup text"
               autoFocus
               onChange={(event) => {
                 setText(event.target.value);
                 setError("");
               }}
-              placeholder={"Arsenal XI (4-3-3):\n22 David Raya\n4 Ben White\n...\n\nSubstitutes:\n9 Gabriel Jesus"}
+              placeholder={"Starting XI (4-3-3):\n1 Goalkeeper\n2 Right back\n...\n\nSubstitutes:\n12 Substitute"}
               rows={13}
               value={text}
             />

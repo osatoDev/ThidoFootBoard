@@ -15,6 +15,32 @@
   margin: 0 auto;
 }
 
+.workspaceStatus {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: var(--shell-width);
+  margin: 8px auto 0;
+  color: #475569;
+  font-size: 0.78rem;
+}
+
+.workspaceStatus > span {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: #10b981;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.13);
+}
+
+.workspaceStatus strong {
+  color: #334155;
+}
+
+.workspaceStatus small {
+  color: #94a3b8;
+}
+
 @media (max-width: 1320px) {
   .workspace {
     grid-template-columns: 1fr;
@@ -24,5 +50,15 @@
 @media (max-width: 820px) {
   .appShell {
     padding: 16px;
+  }
+
+  .workspaceStatus {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .workspaceStatus small {
+    flex-basis: 100%;
+    margin-left: 15px;
   }
 }

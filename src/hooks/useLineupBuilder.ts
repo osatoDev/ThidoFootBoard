@@ -7,6 +7,7 @@ import {
   clamp,
   createEmptyPlayers,
   DEFAULT_FORMATION,
+  hasPlayerDetails,
   normalizePlayers,
   stripCustomPositions,
 } from "../playerUtils";
@@ -76,6 +77,14 @@ export function useLineupBuilder() {
     window.localStorage.setItem(SAVED_STORAGE_KEY, JSON.stringify(savedLineups));
   }, [savedLineups]);
 
+  useEffect(() => {
+    if (!matchImportStatus) {
+      return;
+    }
+    const timeoutId = window.setTimeout(() => setMatchImportStatus(""), 4200);
+    return () => window.clearTimeout(timeoutId);
+  }, [matchImportStatus]);
+
   function updateFormation(nextFormation: FormationName) {
     setFormation(nextFormation);
     setPlayers((current) => stripCustomPositions(current));
@@ -111,12 +120,14 @@ export function useLineupBuilder() {
   }
 
   function updatePlayer(index: number, field: "name" | "number", value: string) {
+    setMatchImportStatus("");
     setPlayers((current) =>
       current.map((player, playerIndex) => (playerIndex === index ? { ...player, [field]: value } : player)),
     );
   }
 
   function updateSubstitute(index: number, field: "name" | "number", value: string) {
+    setMatchImportStatus("");
     setSubstitutes((current) =>
       current.map((player, playerIndex) => (playerIndex === index ? { ...player, [field]: value } : player)),
     );
@@ -379,6 +390,7 @@ export function useLineupBuilder() {
     setPlayers((current) => stripCustomPositions(current));
     setSelectedPlayerIndex(null);
     setDraggingPlayerIndex(null);
+    setMatchImportStatus("Formation positions restored.");
   }
 
   function clearLineup() {
@@ -394,23 +406,13 @@ export function useLineupBuilder() {
     setSelectedPlayerIndex(null);
     setSelectedArrowId(null);
     setSelectedSavedId("");
+    setMatchImportStatus("Current lineup cleared. Saved library lineups are unchanged.");
   }
 
-  function resetAll() {
-    setFormation(DEFAULT_FORMATION);
-    setPlayers(createEmptyPlayers());
-    setSubstitutes([]);
-    setArrows([]);
-    draftArrowRef.current = null;
-    arrowStartPointRef.current = null;
-    setDraftArrow(null);
-    setArrowStartPlayerIndex(null);
+  function resetAppearance() {
     setPitchTheme("classic");
     setPlayerBadges(true);
-    setLineupName("");
-    setSelectedPlayerIndex(null);
-    setSelectedArrowId(null);
-    setSelectedSavedId("");
+    setMatchImportStatus("Pitch appearance restored.");
   }
 
   function saveLineup() {
@@ -422,7 +424,8 @@ export function useLineupBuilder() {
       players,
       substitutes,
       arrows,
-      createdAt: Date.now(),
+      createdAt: savedLineups.find((lineup) => lineup.id === selectedSavedId)?.createdAt ?? Date.now(),
+      updatedAt: Date.now(),
     };
 
     setSavedLineups((current) => {
@@ -431,6 +434,7 @@ export function useLineupBuilder() {
     });
     setSelectedSavedId(save.id);
     setLineupName(name);
+    setMatchImportStatus("Saved to your lineup library.");
   }
 
   function loadLineup(id: string) {
@@ -452,15 +456,52 @@ export function useLineupBuilder() {
     setArrowStartPlayerIndex(null);
     setSelectedPlayerIndex(null);
     setSelectedArrowId(null);
+    setMatchImportStatus(`Opened ${save.name}.`);
   }
 
-  function deleteLineup() {
-    if (!selectedSavedId) {
+  function deleteLineup(id: string) {
+    const deleted = savedLineups.find((lineup) => lineup.id === id);
+    setSavedLineups((current) => current.filter((lineup) => lineup.id !== id));
+    if (selectedSavedId === id) {
+      setSelectedSavedId("");
+    }
+    if (deleted) {
+      setMatchImportStatus(`Deleted ${deleted.name}.`);
+    }
+  }
+
+  function duplicateLineup(id: string) {
+    const source = savedLineups.find((lineup) => lineup.id === id);
+    if (!source) {
       return;
     }
 
-    setSavedLineups((current) => current.filter((lineup) => lineup.id !== selectedSavedId));
-    setSelectedSavedId("");
+    const duplicate: SavedLineup = {
+      ...source,
+      id: createId(),
+      name: `${source.name} copy`,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    };
+    setSavedLineups((current) => [duplicate, ...current].slice(0, 20));
+    setMatchImportStatus(`Duplicated ${source.name}.`);
+  }
+
+  function renameLineup(id: string, name: string) {
+    const cleanName = name.trim();
+    if (!cleanName) {
+      return;
+    }
+
+    setSavedLineups((current) =>
+      current.map((lineup) =>
+        lineup.id === id ? { ...lineup, name: cleanName, updatedAt: Date.now() } : lineup,
+      ),
+    );
+    if (selectedSavedId === id) {
+      setLineupName(cleanName);
+    }
+    setMatchImportStatus(`Renamed lineup to ${cleanName}.`);
   }
 
   function addSubstitute() {
@@ -487,6 +528,26 @@ export function useLineupBuilder() {
     );
   }
 
+  const hasLineupContent =
+    players.some(hasPlayerDetails) || substitutes.some(hasPlayerDetails) || arrows.length > 0;
+  const selectedSavedLineup = savedLineups.find((lineup) => lineup.id === selectedSavedId);
+  const selectedFingerprint = selectedSavedLineup
+    ? JSON.stringify({
+        arrows: normalizeArrows(selectedSavedLineup.arrows),
+        formation: selectedSavedLineup.formation,
+        players: selectedSavedLineup.players,
+        substitutes: selectedSavedLineup.substitutes,
+      })
+    : "";
+  const currentFingerprint = JSON.stringify({ arrows, formation, players, substitutes });
+  const saveState = selectedSavedLineup
+    ? selectedFingerprint === currentFingerprint
+      ? "Saved to library"
+      : "Unsaved library changes"
+    : hasLineupContent
+      ? "Autosaved locally"
+      : "Blank lineup";
+
   return {
     editorPanelProps: {
       addSubstitute,
@@ -494,7 +555,7 @@ export function useLineupBuilder() {
       players,
       positionSet,
       removeSubstitute,
-      resetAll,
+      resetAppearance,
       resetPositions,
       selectedPlayerIndex,
       setEditorTab,
@@ -506,15 +567,17 @@ export function useLineupBuilder() {
     libraryPanelProps: {
       lineupName,
       onDeleteLineup: deleteLineup,
+      onDuplicateLineup: duplicateLineup,
       onLoadLineup: loadLineup,
+      onRenameLineup: renameLineup,
       onSaveLineup: saveLineup,
       savedLineups,
       selectedSavedId,
+      saveState,
       setLineupName,
     },
     matchImportPanelProps: {
       matchImportStatus,
-      onImportLineup: importManualLineup,
     },
     pitchPanelProps: {
       arrowColor,
@@ -555,10 +618,13 @@ export function useLineupBuilder() {
       startArrowFromPlayer,
     },
     topBarProps: {
-      formation,
+      canExport: hasLineupContent,
       onClearLineup: clearLineup,
       onExportPitchImage: () => exportPitchImage({ arrows, lineupName, pitchTheme, players, positionSet }),
-      onFormationChange: updateFormation,
     },
+    hasLineupContent,
+    importManualLineup,
+    saveState,
+    workspaceStatus: matchImportStatus,
   };
 }

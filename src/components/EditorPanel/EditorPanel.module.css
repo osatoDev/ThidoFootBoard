@@ -20,6 +20,24 @@
   border-bottom: 1px solid #e5e7eb;
 }
 
+.tabs button > span {
+  display: inline-grid;
+  min-width: 25px;
+  height: 21px;
+  margin-left: 6px;
+  place-items: center;
+  padding: 0 6px;
+  border-radius: 999px;
+  color: #64748b;
+  background: #f1f5f9;
+  font-size: 0.68rem;
+}
+
+.tabs button.active > span {
+  color: #087f4f;
+  background: #dcfce7;
+}
+
 .tabs button {
   position: relative;
   min-height: 44px;
@@ -47,6 +65,7 @@
 .playerRows {
   display: grid;
   gap: 8px;
+  scroll-margin-top: 12px;
 }
 
 .playerRow {
