@@ -1,30 +1,12 @@
 import { formations } from "./formations";
 import { normalizeArrows } from "./arrowUtils";
-import { DEFAULT_FORMATION, createEmptyPlayers, hasPlayerDetails, isSamePlayerList, normalizePlayers } from "./playerUtils";
+import { DEFAULT_FORMATION, createEmptyPlayers, hasPlayerDetails, normalizePlayers } from "./playerUtils";
 import type { CurrentLineup, FormationName, Player, SavedLineup } from "./types";
 
 export const CURRENT_STORAGE_KEY = "thido-lineup-builder-current";
 export const SAVED_STORAGE_KEY = "thido-lineup-builder-saved";
 
-const oldSamplePlayers: Player[] = [
-  { name: "Aaron Ramsdale", number: "1" },
-  { name: "Ben White", number: "4" },
-  { name: "William Saliba", number: "2" },
-  { name: "Gabriel Magalhaes", number: "6" },
-  { name: "Oleksandr Zinchenko", number: "18" },
-  { name: "Thomas Partey", number: "5" },
-  { name: "Declan Rice", number: "41" },
-  { name: "Martin Odegaard", number: "8" },
-  { name: "Bukayo Saka", number: "7" },
-  { name: "Eddie Nketiah", number: "9" },
-  { name: "Gabriel Martinelli", number: "11" },
-];
-
-const oldSampleSubstitutes: Player[] = [
-  { name: "David Raya", number: "22" },
-  { name: "Jorginho", number: "20" },
-  { name: "Leandro Trossard", number: "19" },
-];
+const LEGACY_LINEUP_FINGERPRINT = "2c7a3a01";
 
 function createEmptyLineup(): CurrentLineup {
   return {
@@ -48,12 +30,26 @@ function isNumberedPlaceholderLineup(lineup: Partial<CurrentLineup>) {
   );
 }
 
-function isOldSampleLineup(lineup: Partial<CurrentLineup>) {
-  return (
-    lineup.formation === "4-3-3" &&
-    isSamePlayerList(lineup.players, oldSamplePlayers) &&
-    isSamePlayerList(lineup.substitutes, oldSampleSubstitutes)
-  );
+function fingerprintPlayers(players: Player[] | undefined) {
+  if (!players || players.length !== 11) {
+    return "";
+  }
+
+  const value = players
+    .map(({ name, number }) => `${name.trim().toLocaleLowerCase("en-US")}\u0000${number.trim()}`)
+    .join("\u0001");
+  let hash = 0x811c9dc5;
+
+  for (let index = 0; index < value.length; index += 1) {
+    hash ^= value.charCodeAt(index);
+    hash = Math.imul(hash, 0x01000193);
+  }
+
+  return (hash >>> 0).toString(16).padStart(8, "0");
+}
+
+function isLegacyBundledLineup(lineup: Partial<CurrentLineup>) {
+  return fingerprintPlayers(lineup.players) === LEGACY_LINEUP_FINGERPRINT;
 }
 
 export function loadCurrentLineup(): CurrentLineup {
@@ -64,7 +60,7 @@ export function loadCurrentLineup(): CurrentLineup {
     }
 
     const parsed = JSON.parse(raw) as Partial<CurrentLineup>;
-    if (isOldSampleLineup(parsed) || isBlankLineup(parsed) || isNumberedPlaceholderLineup(parsed)) {
+    if (isLegacyBundledLineup(parsed) || isBlankLineup(parsed) || isNumberedPlaceholderLineup(parsed)) {
       throw new Error("Stored lineup should use the default");
     }
 
@@ -90,7 +86,8 @@ export function loadCurrentLineup(): CurrentLineup {
 export function loadSavedLineups() {
   try {
     const raw = window.localStorage.getItem(SAVED_STORAGE_KEY);
-    return raw ? (JSON.parse(raw) as SavedLineup[]) : [];
+    const savedLineups = raw ? (JSON.parse(raw) as SavedLineup[]) : [];
+    return savedLineups.filter((lineup) => !isLegacyBundledLineup(lineup));
   } catch {
     return [];
   }
