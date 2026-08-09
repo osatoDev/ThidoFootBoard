@@ -1,28 +1,23 @@
-import { CircleHelp, Crown, Download, RefreshCcw, Sparkles } from "lucide-react";
+import { CircleHelp, Download, MoreHorizontal, RefreshCcw } from "lucide-react";
+import { useState } from "react";
 
 import styles from "./TopBar.module.css";
 
 type TopBarProps = {
   canExport: boolean;
-  hasPremiumAccess: boolean;
-  isLocalhost: boolean;
   onClearLineup: () => void;
   onExportPitchImage: () => void;
   onOpenHowItWorks: () => void;
-  onOpenMatchImport: () => void;
-  onOpenPricing: () => void;
 };
 
 export function TopBar({
   canExport,
-  hasPremiumAccess,
-  isLocalhost,
   onClearLineup,
   onExportPitchImage,
   onOpenHowItWorks,
-  onOpenMatchImport,
-  onOpenPricing,
 }: TopBarProps) {
+  const [isMoreOpen, setIsMoreOpen] = useState(false);
+
   return (
     <header className={styles.topBar}>
       <div className={styles.brandLockup}>
@@ -42,28 +37,41 @@ export function TopBar({
       </div>
 
       <div className={styles.topActions}>
-        <button className={styles.importButton} onClick={onOpenMatchImport} type="button">
-          <Sparkles size={17} aria-hidden="true" />
-          Import match
-        </button>
-        <button className={styles.planButton} onClick={onOpenPricing} type="button">
-          <Crown size={17} aria-hidden="true" />
-          {hasPremiumAccess ? (isLocalhost ? "Premium Dev" : "Premium") : "Upgrade"}
-        </button>
-        <button className={styles.ghostButton} onClick={onClearLineup} type="button">
-          <RefreshCcw size={18} aria-hidden="true" />
-          Clear lineup
-        </button>
-        <button
-          className={styles.primaryButton}
-          disabled={!canExport}
-          onClick={onExportPitchImage}
-          title={canExport ? "Export the current pitch as an image" : "Add or import players before exporting"}
-          type="button"
-        >
-          <Download size={18} aria-hidden="true" />
-          Export Image
-        </button>
+        {canExport ? (
+          <>
+            <button className={styles.primaryButton} onClick={onExportPitchImage} type="button">
+              <Download size={18} aria-hidden="true" />
+              Export
+            </button>
+            <div className={styles.moreMenu}>
+              <button
+                aria-expanded={isMoreOpen}
+                aria-haspopup="menu"
+                aria-label="More lineup actions"
+                className={styles.moreButton}
+                onClick={() => setIsMoreOpen((current) => !current)}
+                type="button"
+              >
+                <MoreHorizontal size={20} aria-hidden="true" />
+              </button>
+              {isMoreOpen ? (
+                <div className={styles.menuPopover} role="menu">
+                  <button
+                    onClick={() => {
+                      setIsMoreOpen(false);
+                      onClearLineup();
+                    }}
+                    role="menuitem"
+                    type="button"
+                  >
+                    <RefreshCcw size={17} aria-hidden="true" />
+                    Clear lineup
+                  </button>
+                </div>
+              ) : null}
+            </div>
+          </>
+        ) : null}
       </div>
     </header>
   );

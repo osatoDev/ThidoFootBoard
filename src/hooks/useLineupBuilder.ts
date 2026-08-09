@@ -576,9 +576,6 @@ export function useLineupBuilder() {
       saveState,
       setLineupName,
     },
-    matchImportPanelProps: {
-      matchImportStatus,
-    },
     pitchPanelProps: {
       arrowColor,
       arrowColors,

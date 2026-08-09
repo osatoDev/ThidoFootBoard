@@ -131,19 +131,10 @@
   gap: 10px;
 }
 
-.importButton,
-.planButton,
-.ghostButton,
 .primaryButton {
-  min-height: 52px;
-  border: 1px solid #d5dce0;
+  min-height: 38px;
+  border: 1px solid #087f4f;
   border-radius: 8px;
-  background: #ffffff;
-  color: #111827;
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.04);
-}
-
-.primaryButton {
   border-color: #087f4f;
   color: #ffffff;
   background: linear-gradient(180deg, #078a54 0%, #006b3f 100%);
@@ -156,9 +147,6 @@
   justify-content: flex-end;
 }
 
-.importButton,
-.planButton,
-.ghostButton,
 .primaryButton {
   display: inline-flex;
   align-items: center;
@@ -170,25 +158,50 @@
   white-space: nowrap;
 }
 
-.importButton {
-  border-color: #b8dfce;
-  color: #087f4f;
-  background: #f0fdf4;
+.moreMenu {
+  position: relative;
 }
 
-.planButton {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  min-height: 38px;
-  padding: 0 14px;
-  border: 1px solid #d8b04c;
+.moreButton {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  border: 1px solid #d5dce0;
   border-radius: 8px;
-  color: #76540a;
-  background: #fff8dc;
-  font-weight: 800;
-  white-space: nowrap;
+  color: #334155;
+  background: #ffffff;
+}
+
+.menuPopover {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 7px);
+  right: 0;
+  width: 174px;
+  padding: 6px;
+  border: 1px solid #d8dee3;
+  border-radius: 10px;
+  background: #ffffff;
+  box-shadow: 0 18px 44px rgba(15, 23, 42, 0.16);
+}
+
+.menuPopover button {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  min-height: 38px;
+  padding: 0 10px;
+  border-radius: 7px;
+  color: #991b1b;
+  background: transparent;
+  font-size: 0.84rem;
+  font-weight: 750;
+}
+
+.menuPopover button:hover {
+  background: #fef2f2;
 }
 
 @media (max-width: 1320px) {
@@ -222,18 +235,18 @@
     height: 54px;
   }
 
-  .importButton,
-  .planButton,
-  .ghostButton,
-  .primaryButton {
-    min-height: 46px;
+  .topBar {
+    grid-template-columns: minmax(0, 1fr) auto;
   }
 
-  .topActions,
-  .importButton,
-  .planButton,
-  .ghostButton,
+  .topActions {
+    grid-column: 2;
+    grid-row: 1;
+    width: auto;
+  }
+
   .primaryButton {
-    width: 100%;
+    min-height: 42px;
+    padding: 0 13px;
   }
 }

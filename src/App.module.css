@@ -15,6 +15,15 @@
   margin: 0 auto;
 }
 
+.workspaceEmpty {
+  grid-template-columns: 1fr;
+}
+
+.workspaceEmpty > section {
+  justify-self: center;
+  width: min(100%, 1000px);
+}
+
 .workspaceStatus {
   display: flex;
   align-items: center;
@@ -41,7 +50,7 @@
   color: #94a3b8;
 }
 
-@media (max-width: 1320px) {
+@media (max-width: 1120px) {
   .workspace {
     grid-template-columns: 1fr;
   }
@@ -53,12 +62,6 @@
   }
 
   .workspaceStatus {
-    align-items: flex-start;
-    flex-wrap: wrap;
-  }
-
-  .workspaceStatus small {
-    flex-basis: 100%;
-    margin-left: 15px;
+    margin-top: 10px;
   }
 }

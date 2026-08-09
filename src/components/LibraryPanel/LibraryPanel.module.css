@@ -1,6 +1,4 @@
 .libraryPanel {
-  display: grid;
-  gap: 11px;
   margin-top: auto;
   padding-top: 16px;
   border-top: 1px solid #e5e7eb;
@@ -11,6 +9,13 @@
   align-items: center;
   justify-content: space-between;
   gap: 10px;
+  min-height: 38px;
+  list-style: none;
+  cursor: pointer;
+}
+
+.libraryHeader::-webkit-details-marker {
+  display: none;
 }
 
 .libraryHeader > div {
@@ -22,11 +27,40 @@
   font-weight: 800;
 }
 
-.libraryHeader em {
+.libraryHeader b {
+  display: grid;
+  min-width: 23px;
+  height: 21px;
+  place-items: center;
+  padding: 0 6px;
+  border-radius: 999px;
+  color: #087f4f;
+  background: #dcfce7;
+  font-size: 0.69rem;
+  font-weight: 800;
+}
+
+.libraryHeader > svg {
+  color: #94a3b8;
+  transition: transform 140ms ease;
+}
+
+.libraryPanel[open] .libraryHeader > svg {
+  transform: rotate(180deg);
+}
+
+.libraryBody {
+  display: grid;
+  gap: 9px;
+  padding-top: 10px;
+}
+
+.saveStatus {
+  margin: -3px 0 0;
   color: #087f4f;
   font-size: 0.69rem;
-  font-style: normal;
-  font-weight: 800;
+  font-weight: 750;
+  text-align: right;
 }
 
 .saveGrid {
@@ -131,7 +165,6 @@
 .emptyState { margin: 4px 0; color: #94a3b8; font-size: 0.78rem; text-align: center; }
 
 @media (max-width: 540px) {
-  .libraryHeader { align-items: flex-start; flex-direction: column; }
   .lineupCard { align-items: start; grid-template-columns: 1fr; }
   .cardActions { justify-content: flex-end; }
 }

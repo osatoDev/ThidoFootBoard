@@ -1,0 +1,147 @@
+.backdrop {
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(15, 23, 42, 0.58);
+  backdrop-filter: blur(3px);
+}
+
+.modal {
+  display: grid;
+  gap: 20px;
+  width: min(620px, 100%);
+  padding: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  border-radius: 18px;
+  background: #ffffff;
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.28);
+}
+
+.modal header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.modal header > div {
+  display: grid;
+  gap: 3px;
+}
+
+.modal header span {
+  color: #087f4f;
+  font-size: 0.72rem;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.modal h2,
+.modal p {
+  margin: 0;
+}
+
+.modal h2 {
+  color: #111827;
+  font-size: 1.35rem;
+}
+
+.modal p {
+  color: #64748b;
+  font-size: 0.86rem;
+}
+
+.closeButton {
+  display: grid;
+  flex: 0 0 auto;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  color: #475569;
+  background: #ffffff;
+}
+
+.sourceGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.sourceButton {
+  position: relative;
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+  gap: 11px;
+  align-items: center;
+  min-height: 92px;
+  padding: 14px;
+  border: 1px solid #d8dee3;
+  border-radius: 12px;
+  color: #1e293b;
+  background: #ffffff;
+  text-align: left;
+  transition: border-color 140ms ease, background 140ms ease, transform 140ms ease;
+}
+
+.sourceButton:hover {
+  border-color: #86c8aa;
+  background: #f0fdf4;
+  transform: translateY(-1px);
+}
+
+.sourceIcon {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border-radius: 10px;
+  color: #087f4f;
+  background: #eaf8f0;
+}
+
+.sourceCopy {
+  display: grid;
+  gap: 3px;
+}
+
+.sourceCopy strong {
+  font-size: 0.9rem;
+}
+
+.sourceCopy small {
+  color: #64748b;
+  font-size: 0.74rem;
+  line-height: 1.35;
+}
+
+.premiumBadge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #76540a;
+  font-size: 0.64rem;
+  font-weight: 850;
+}
+
+@media (max-width: 540px) {
+  .modal {
+    padding: 18px;
+  }
+
+  .sourceGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .sourceButton {
+    min-height: 78px;
+  }
+}

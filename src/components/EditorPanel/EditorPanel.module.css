@@ -13,6 +13,48 @@
   backdrop-filter: blur(18px);
 }
 
+.panelHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.panelHeader > div {
+  display: grid;
+  gap: 1px;
+}
+
+.panelHeader span {
+  color: #087f4f;
+  font-size: 0.68rem;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.panelHeader h2 {
+  margin: 0;
+  color: #111827;
+  font-size: 1.2rem;
+}
+
+.importButton,
+.addSubstituteButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 38px;
+  padding: 0 13px;
+  border: 1px solid #b8dfce;
+  border-radius: 8px;
+  color: #087f4f;
+  background: #f0fdf4;
+  font-weight: 800;
+}
+
 .tabs {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -144,13 +186,11 @@
   box-shadow: 0 10px 24px rgba(15, 23, 42, 0.04);
 }
 
-.panelActions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px 16px;
-  justify-content: space-between;
-  margin: 16px 0;
-  padding-top: 4px;
+.addSubstituteButton {
+  width: 100%;
+  margin-top: 4px;
+  border-style: dashed;
+  background: #ffffff;
 }
 
 .textButton {
@@ -164,6 +204,34 @@
   background: transparent;
   font-weight: 760;
   white-space: nowrap;
+}
+
+.secondaryTools {
+  position: relative;
+  margin: 12px 0;
+}
+
+.secondaryTools summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 34px;
+  color: #64748b;
+  font-size: 0.8rem;
+  font-weight: 760;
+  list-style: none;
+  cursor: pointer;
+}
+
+.secondaryTools summary::-webkit-details-marker {
+  display: none;
+}
+
+.secondaryTools > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  padding: 6px 0 2px;
 }
 
 .emptyState {
@@ -223,8 +291,12 @@
     justify-self: end;
   }
 
-  .panelActions {
+  .panelHeader {
+    align-items: flex-start;
+  }
+
+  .secondaryTools > div {
     display: grid;
-    justify-content: stretch;
+    justify-content: start;
   }
 }

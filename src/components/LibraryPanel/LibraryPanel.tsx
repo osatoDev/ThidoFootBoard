@@ -1,4 +1,4 @@
-import { ArrowUpRight, Copy, FolderOpen, Save, Trash2 } from "lucide-react";
+import { ArrowUpRight, ChevronDown, Copy, FolderOpen, Save, Trash2 } from "lucide-react";
 import { type Dispatch, type KeyboardEvent, type SetStateAction, useEffect, useState } from "react";
 
 import type { SavedLineup } from "../../types";
@@ -30,42 +30,49 @@ export function LibraryPanel({
   setLineupName,
 }: LibraryPanelProps) {
   return (
-    <div className={styles.libraryPanel}>
-      <div className={styles.libraryHeader}>
-        <div><FolderOpen size={18} aria-hidden="true" /><span>Your lineups</span></div>
-        <em>{saveState}</em>
+    <details className={styles.libraryPanel}>
+      <summary className={styles.libraryHeader}>
+        <div>
+          <FolderOpen size={18} aria-hidden="true" />
+          <span>Saved lineups</span>
+          <b>{savedLineups.length}</b>
+        </div>
+        <ChevronDown size={18} aria-hidden="true" />
+      </summary>
+      <div className={styles.libraryBody}>
+        <div className={styles.saveGrid}>
+          <input
+            aria-label="Lineup name"
+            onChange={(event) => setLineupName(event.target.value)}
+            placeholder="Lineup name"
+            type="text"
+            value={lineupName}
+          />
+          <button className={styles.saveButton} onClick={onSaveLineup} type="button">
+            <Save size={18} aria-hidden="true" />
+            {selectedSavedId ? "Update" : "Save"}
+          </button>
+        </div>
+        {saveState ? <p className={styles.saveStatus}>{saveState}</p> : null}
+        <div className={styles.lineupList} aria-label="Saved lineup library">
+          {savedLineups.length === 0 ? (
+            <p className={styles.emptyState}>Saved lineups will appear here for quick access.</p>
+          ) : (
+            savedLineups.slice(0, 6).map((lineup) => (
+              <LineupCard
+                isSelected={selectedSavedId === lineup.id}
+                key={lineup.id}
+                lineup={lineup}
+                onDelete={onDeleteLineup}
+                onDuplicate={onDuplicateLineup}
+                onOpen={onLoadLineup}
+                onRename={onRenameLineup}
+              />
+            ))
+          )}
+        </div>
       </div>
-      <div className={styles.saveGrid}>
-        <input
-          aria-label="Lineup name"
-          onChange={(event) => setLineupName(event.target.value)}
-          placeholder="Lineup name"
-          type="text"
-          value={lineupName}
-        />
-        <button className={styles.saveButton} onClick={onSaveLineup} type="button">
-          <Save size={18} aria-hidden="true" />
-          {selectedSavedId ? "Update" : "Save"}
-        </button>
-      </div>
-      <div className={styles.lineupList} aria-label="Saved lineup library">
-        {savedLineups.length === 0 ? (
-          <p className={styles.emptyState}>Saved lineups will appear here for quick access.</p>
-        ) : (
-          savedLineups.slice(0, 6).map((lineup) => (
-            <LineupCard
-              isSelected={selectedSavedId === lineup.id}
-              key={lineup.id}
-              lineup={lineup}
-              onDelete={onDeleteLineup}
-              onDuplicate={onDuplicateLineup}
-              onOpen={onLoadLineup}
-              onRename={onRenameLineup}
-            />
-          ))
-        )}
-      </div>
-    </div>
+    </details>
   );
 }
 

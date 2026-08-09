@@ -1,4 +1,4 @@
-import { ClipboardPaste, Plus, RotateCcw, Sparkles, Trash2, Users } from "lucide-react";
+import { MoreHorizontal, Plus, RotateCcw, Sparkles, Trash2, Upload, Users } from "lucide-react";
 import { type Dispatch, type KeyboardEvent, type ReactNode, type SetStateAction, useRef } from "react";
 
 import type { EditorTab, Player, PositionCoordinate } from "../../types";
@@ -8,7 +8,6 @@ type EditorPanelProps = {
   addSubstitute: () => void;
   editorTab: EditorTab;
   libraryPanel: ReactNode;
-  matchImportPanel: ReactNode;
   players: Player[];
   positionSet: PositionCoordinate[];
   removeSubstitute: (index: number) => void;
@@ -18,7 +17,7 @@ type EditorPanelProps = {
   setEditorTab: Dispatch<SetStateAction<EditorTab>>;
   setSelectedPlayerIndex: Dispatch<SetStateAction<number | null>>;
   substitutes: Player[];
-  onOpenTextImport: () => void;
+  onOpenImport: () => void;
   updatePlayer: (index: number, field: "name" | "number", value: string) => void;
   updateSubstitute: (index: number, field: "name" | "number", value: string) => void;
 };
@@ -31,7 +30,6 @@ export function EditorPanel({
   addSubstitute,
   editorTab,
   libraryPanel,
-  matchImportPanel,
   players,
   positionSet,
   removeSubstitute,
@@ -41,7 +39,7 @@ export function EditorPanel({
   setEditorTab,
   setSelectedPlayerIndex,
   substitutes,
-  onOpenTextImport,
+  onOpenImport,
   updatePlayer,
   updateSubstitute,
 }: EditorPanelProps) {
@@ -68,7 +66,16 @@ export function EditorPanel({
 
   return (
     <aside className={styles.editorPanel}>
-      {matchImportPanel}
+      <div className={styles.panelHeader}>
+        <div>
+          <span>Editor</span>
+          <h2>Lineup</h2>
+        </div>
+        <button className={styles.importButton} onClick={onOpenImport} type="button">
+          <Upload size={17} aria-hidden="true" />
+          Import
+        </button>
+      </div>
 
       <div className={styles.tabs} role="tablist" aria-label="Lineup editor">
         <button
@@ -174,27 +181,29 @@ export function EditorPanel({
             </div>
           ))}
           {substitutes.length === 0 ? <p className={styles.emptyState}>No substitutes</p> : null}
+          <button className={styles.addSubstituteButton} onClick={addSubstitute} type="button">
+            <Plus size={17} aria-hidden="true" />
+            Add substitute
+          </button>
         </div>
       )}
 
-      <div className={styles.panelActions}>
-        <button className={styles.textButton} onClick={addSubstitute} type="button">
-          <Plus size={18} aria-hidden="true" />
-          Add substitute
-        </button>
-        <button className={styles.textButton} onClick={onOpenTextImport} type="button">
-          <ClipboardPaste size={18} aria-hidden="true" />
-          Paste XI
-        </button>
-        <button className={styles.textButton} onClick={resetAppearance} type="button">
-          <Sparkles size={18} aria-hidden="true" />
-          Reset appearance
-        </button>
-        <button className={styles.textButton} onClick={resetPositions} type="button">
-          <RotateCcw size={18} aria-hidden="true" />
-          Restore positions
-        </button>
-      </div>
+      <details className={styles.secondaryTools}>
+        <summary>
+          <MoreHorizontal size={18} aria-hidden="true" />
+          More tools
+        </summary>
+        <div>
+          <button className={styles.textButton} onClick={resetAppearance} type="button">
+            <Sparkles size={17} aria-hidden="true" />
+            Reset appearance
+          </button>
+          <button className={styles.textButton} onClick={resetPositions} type="button">
+            <RotateCcw size={17} aria-hidden="true" />
+            Restore positions
+          </button>
+        </div>
+      </details>
 
       {libraryPanel}
     </aside>

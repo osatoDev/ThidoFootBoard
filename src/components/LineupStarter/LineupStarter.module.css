@@ -28,16 +28,14 @@
 .starter h2 { max-width: 430px; font-size: 1.38rem; line-height: 1.2; }
 .starter p { max-width: 440px; color: #64748b; font-size: 0.86rem; }
 
-.actions, .quickLinks { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+.actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
 .actions { margin-top: 6px; }
-.actions button, .quickLinks button { display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 40px; padding: 0 14px; border: 1px solid #d8dee3; border-radius: 9px; color: #334155; background: #ffffff; font-weight: 800; }
+.actions button { display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 40px; padding: 0 14px; border: 1px solid #d8dee3; border-radius: 9px; color: #334155; background: #ffffff; font-weight: 800; }
 .actions .primaryButton { border-color: #087f4f; color: #ffffff; background: #087f4f; }
-.quickLinks button { min-height: 32px; padding: 0 8px; border: 0; color: #087f4f; background: transparent; font-size: 0.76rem; }
 
 @media (max-width: 540px) {
   .starter { gap: 7px; width: calc(100% - 24px); padding: 16px; }
   .starter h2 { font-size: 1.08rem; }
   .starter p { font-size: 0.78rem; }
   .actions, .actions button { width: 100%; }
-  .quickLinks { display: none; }
 }
