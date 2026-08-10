@@ -4,6 +4,7 @@ import { ChangeEvent, Dispatch, SetStateAction, useEffect, useMemo, useRef, useS
 import { formations } from "../../formations";
 import { useDialogAccessibility } from "../../hooks/useDialogAccessibility";
 import { parseCsvLineup, parseJsonLineup, parseTextLineup } from "../../lineupImport";
+import { trackFeature, trackProductEvent } from "../../pendo";
 import {
   extractLineupScreenshot,
   findMatchLineup,
@@ -117,18 +118,26 @@ export function LineupImportModal({
       return;
     }
 
-    onImportLineup({
+    const importedLineup = {
       formation: extractedLineup.formation,
       name: extractedLineup.name,
       players: players.map(({ name, number }) => ({ name: name.trim(), number: number.trim() })),
       substitutes: extractedLineup.substitutes
         .filter((player) => player.name.trim() || player.number.trim())
         .map(({ name, number }) => ({ name: name.trim(), number: number.trim() })),
+    };
+    onImportLineup(importedLineup);
+    trackFeature("lineup_import_completed", {
+      method,
+      starters: importedLineup.players.length,
+      substitutes: importedLineup.substitutes.length,
     });
     onClose();
   }
 
   async function submitImport() {
+    const startedAt = performance.now();
+    trackFeature("lineup_import_started", { method });
     try {
       if (method === "screenshot") {
         if (!file) {
@@ -139,7 +148,14 @@ export function LineupImportModal({
         extractionControllerRef.current?.abort();
         const controller = new AbortController();
         extractionControllerRef.current = controller;
-        setExtractedLineup(await extractLineupScreenshot(file, controller.signal));
+        const result = await extractLineupScreenshot(file, controller.signal);
+        setExtractedLineup(result);
+        trackProductEvent("lineup_import_review_ready", {
+          duration_ms: Math.round(performance.now() - startedAt),
+          method,
+          starters: result.players.length,
+          substitutes: result.substitutes.length,
+        });
         return;
       }
 
@@ -152,8 +168,7 @@ export function LineupImportModal({
         extractionControllerRef.current?.abort();
         const controller = new AbortController();
         extractionControllerRef.current = controller;
-        setExtractedLineup(
-          await findMatchLineup(
+        const result = await findMatchLineup(
             {
               approximateDate,
               teamA: teamA.trim(),
@@ -161,8 +176,14 @@ export function LineupImportModal({
               teamToImport,
             },
             controller.signal,
-          ),
-        );
+          );
+        setExtractedLineup(result);
+        trackProductEvent("lineup_import_review_ready", {
+          duration_ms: Math.round(performance.now() - startedAt),
+          method,
+          starters: result.players.length,
+          substitutes: result.substitutes.length,
+        });
         return;
       }
 
@@ -173,17 +194,34 @@ export function LineupImportModal({
         const source = await file.text();
         const lineup = file.name.toLowerCase().endsWith(".json") ? parseJsonLineup(source) : parseCsvLineup(source);
         onImportLineup(lineup);
+        trackFeature("lineup_import_completed", {
+          file_type: file.name.toLowerCase().endsWith(".json") ? "json" : "csv",
+          method,
+          starters: lineup.players.length,
+          substitutes: lineup.substitutes.length,
+        });
         onClose();
         return;
       }
 
-      onImportLineup(parseTextLineup(text));
+      const lineup = parseTextLineup(text);
+      onImportLineup(lineup);
+      trackFeature("lineup_import_completed", {
+        method,
+        starters: lineup.players.length,
+        substitutes: lineup.substitutes.length,
+      });
       onClose();
     } catch (importError) {
       if (importError instanceof DOMException && importError.name === "AbortError") {
         return;
       }
       setError(importError instanceof Error ? importError.message : "Could not import this lineup.");
+      trackProductEvent("lineup_import_failed", {
+        duration_ms: Math.round(performance.now() - startedAt),
+        error_type: importError instanceof Error ? importError.name : "unknown",
+        method,
+      });
     } finally {
       extractionControllerRef.current = null;
       setIsExtracting(false);

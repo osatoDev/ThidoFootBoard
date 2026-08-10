@@ -3,6 +3,7 @@ import { useRef } from "react";
 
 import { useDialogAccessibility } from "../../hooks/useDialogAccessibility";
 import type { SubscriptionPlan } from "../../subscription";
+import { trackFeature } from "../../pendo";
 import styles from "./PricingModal.module.css";
 
 type PricingModalProps = {
@@ -27,6 +28,7 @@ export function PricingModal({ isLocalhost, onClose, onSelectPlan, plan }: Prici
 
   function choosePremium() {
     onSelectPlan("premium");
+    trackFeature("subscription_plan_selected", { plan: "premium" });
     onClose();
   }
 
@@ -72,7 +74,10 @@ export function PricingModal({ isLocalhost, onClose, onSelectPlan, plan }: Prici
             <button
               className={styles.secondaryButton}
               disabled={plan === "free"}
-              onClick={() => onSelectPlan("free")}
+              onClick={() => {
+                onSelectPlan("free");
+                trackFeature("subscription_plan_selected", { plan: "free" });
+              }}
               type="button"
             >
               {plan === "free" ? "Current plan" : "Switch to Free"}

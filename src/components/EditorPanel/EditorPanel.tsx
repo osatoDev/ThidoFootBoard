@@ -2,6 +2,7 @@ import { MoreHorizontal, Plus, RotateCcw, Sparkles, Trash2, Upload, Users } from
 import { type Dispatch, type KeyboardEvent, type ReactNode, type SetStateAction, useRef } from "react";
 
 import type { EditorTab, Player, PositionCoordinate } from "../../types";
+import { trackFeature } from "../../pendo";
 import styles from "./EditorPanel.module.css";
 
 type EditorPanelProps = {
@@ -61,6 +62,7 @@ export function EditorPanel({
     event.preventDefault();
     const nextTab: EditorTab = tab === "starting" ? "substitutes" : "starting";
     setEditorTab(nextTab);
+    trackFeature("editor_tab_changed", { tab: nextTab });
     tabRefs.current[nextTab === "starting" ? 0 : 1]?.focus();
   }
 
@@ -84,7 +86,12 @@ export function EditorPanel({
           className={editorTab === "starting" ? styles.active : ""}
           id="starting-lineup-tab"
           onKeyDown={(event) => handleTabKeyDown(event, "starting")}
-          onClick={() => setEditorTab("starting")}
+          onClick={() => {
+            setEditorTab("starting");
+            if (editorTab !== "starting") {
+              trackFeature("editor_tab_changed", { tab: "starting" });
+            }
+          }}
           ref={(element) => { tabRefs.current[0] = element; }}
           role="tab"
           tabIndex={editorTab === "starting" ? 0 : -1}
@@ -98,7 +105,12 @@ export function EditorPanel({
           className={editorTab === "substitutes" ? styles.active : ""}
           id="substitutes-lineup-tab"
           onKeyDown={(event) => handleTabKeyDown(event, "substitutes")}
-          onClick={() => setEditorTab("substitutes")}
+          onClick={() => {
+            setEditorTab("substitutes");
+            if (editorTab !== "substitutes") {
+              trackFeature("editor_tab_changed", { tab: "substitutes" });
+            }
+          }}
           ref={(element) => { tabRefs.current[1] = element; }}
           role="tab"
           tabIndex={editorTab === "substitutes" ? 0 : -1}

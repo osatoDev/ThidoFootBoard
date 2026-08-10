@@ -18,6 +18,11 @@ type PendoAgent = {
 
 type PendoQueuedMethod = keyof Omit<PendoAgent, "_q">;
 
+export type AnalyticsProperties = Record<
+  string,
+  boolean | number | string | null | undefined
+>;
+
 declare global {
   interface Window {
     pendo?: PendoAgent;
@@ -78,4 +83,32 @@ export function initializePendo() {
     visitor: {},
     account: {},
   });
+}
+
+function compactProperties(properties: AnalyticsProperties) {
+  return Object.fromEntries(
+    Object.entries(properties).filter(([, value]) => value !== undefined),
+  );
+}
+
+/**
+ * All product interactions use one event name so feature adoption can be
+ * compared directly in Pendo by grouping on the `feature` property.
+ * Never include lineup content or other user-entered data here.
+ */
+export function trackFeature(
+  feature: string,
+  properties: AnalyticsProperties = {},
+) {
+  window.pendo?.track?.("feature_used", {
+    ...compactProperties(properties),
+    feature,
+  });
+}
+
+export function trackProductEvent(
+  eventName: string,
+  properties: AnalyticsProperties = {},
+) {
+  window.pendo?.track?.(eventName, compactProperties(properties));
 }

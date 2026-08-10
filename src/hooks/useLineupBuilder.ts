@@ -11,6 +11,7 @@ import {
   normalizePlayers,
   stripCustomPositions,
 } from "../playerUtils";
+import { trackFeature, trackProductEvent } from "../pendo";
 import { createId, CURRENT_STORAGE_KEY, loadCurrentLineup, loadSavedLineups, SAVED_STORAGE_KEY } from "../storage";
 import type {
   ArrowStyle,
@@ -49,6 +50,7 @@ export function useLineupBuilder() {
   const pitchRef = useRef<HTMLDivElement>(null);
   const draftArrowRef = useRef<MovementArrow | null>(null);
   const arrowStartPointRef = useRef<{ x: number; y: number } | null>(null);
+  const trackedEditsRef = useRef(new Set<string>());
 
   const positionSet = formations[formation];
 
@@ -86,6 +88,9 @@ export function useLineupBuilder() {
   }, [matchImportStatus]);
 
   function updateFormation(nextFormation: FormationName) {
+    if (nextFormation !== formation) {
+      trackFeature("formation_changed", { formation: nextFormation });
+    }
     setFormation(nextFormation);
     setPlayers((current) => stripCustomPositions(current));
     setSelectedPlayerIndex(null);
@@ -120,6 +125,10 @@ export function useLineupBuilder() {
   }
 
   function updatePlayer(index: number, field: "name" | "number", value: string) {
+    if (value.trim() && !trackedEditsRef.current.has("starting_lineup_edited")) {
+      trackedEditsRef.current.add("starting_lineup_edited");
+      trackFeature("starting_lineup_edited", { field });
+    }
     setMatchImportStatus("");
     setPlayers((current) =>
       current.map((player, playerIndex) => (playerIndex === index ? { ...player, [field]: value } : player)),
@@ -127,6 +136,10 @@ export function useLineupBuilder() {
   }
 
   function updateSubstitute(index: number, field: "name" | "number", value: string) {
+    if (value.trim() && !trackedEditsRef.current.has("substitutes_edited")) {
+      trackedEditsRef.current.add("substitutes_edited");
+      trackFeature("substitutes_edited", { field });
+    }
     setMatchImportStatus("");
     setSubstitutes((current) =>
       current.map((player, playerIndex) => (playerIndex === index ? { ...player, [field]: value } : player)),
@@ -177,6 +190,7 @@ export function useLineupBuilder() {
 
     event.currentTarget.releasePointerCapture(event.pointerId);
     setDraggingPlayerIndex(null);
+    trackFeature("player_repositioned", { formation });
   }
 
   function handleArrowPointerDown(event: PointerEvent<SVGElement>) {
@@ -287,6 +301,10 @@ export function useLineupBuilder() {
     if (distance >= 3) {
       setArrows((current) => [...current, currentDraft]);
       setSelectedArrowId(currentDraft.id);
+      trackFeature("movement_arrow_created", {
+        input: arrowStartPointRef.current ? "player" : "pointer",
+        style: currentDraft.style,
+      });
     } else {
       setSelectedArrowId(null);
     }
@@ -306,6 +324,10 @@ export function useLineupBuilder() {
     if (distance >= 3) {
       setArrows((current) => [...current, currentDraft]);
       setSelectedArrowId(currentDraft.id);
+      trackFeature("movement_arrow_created", {
+        input: arrowStartPointRef.current ? "player" : "mouse",
+        style: currentDraft.style,
+      });
     } else {
       setSelectedArrowId(null);
     }
@@ -340,6 +362,10 @@ export function useLineupBuilder() {
     if (distance >= 3) {
       setArrows((current) => [...current, nextArrow]);
       setSelectedArrowId(nextArrow.id);
+      trackFeature("movement_arrow_created", {
+        input: "player_click",
+        style: nextArrow.style,
+      });
     }
     arrowStartPointRef.current = null;
     draftArrowRef.current = null;
@@ -375,9 +401,13 @@ export function useLineupBuilder() {
 
     setArrows((current) => current.filter((arrow) => arrow.id !== selectedArrowId));
     setSelectedArrowId(null);
+    trackFeature("movement_arrow_deleted");
   }
 
   function clearArrows() {
+    if (arrows.length > 0) {
+      trackFeature("movement_arrows_cleared", { count: arrows.length });
+    }
     setArrows([]);
     draftArrowRef.current = null;
     arrowStartPointRef.current = null;
@@ -391,6 +421,7 @@ export function useLineupBuilder() {
     setSelectedPlayerIndex(null);
     setDraggingPlayerIndex(null);
     setMatchImportStatus("Formation positions restored.");
+    trackFeature("player_positions_reset");
   }
 
   function clearLineup() {
@@ -407,12 +438,14 @@ export function useLineupBuilder() {
     setSelectedArrowId(null);
     setSelectedSavedId("");
     setMatchImportStatus("Current lineup cleared. Saved library lineups are unchanged.");
+    trackFeature("lineup_cleared");
   }
 
   function resetAppearance() {
     setPitchTheme("classic");
     setPlayerBadges(true);
     setMatchImportStatus("Pitch appearance restored.");
+    trackFeature("pitch_appearance_reset");
   }
 
   function saveLineup() {
@@ -435,6 +468,10 @@ export function useLineupBuilder() {
     setSelectedSavedId(save.id);
     setLineupName(name);
     setMatchImportStatus("Saved to your lineup library.");
+    trackFeature("lineup_saved", {
+      operation: selectedSavedId ? "update" : "create",
+      saved_count: Math.min(savedLineups.length + (selectedSavedId ? 0 : 1), 20),
+    });
   }
 
   function loadLineup(id: string) {
@@ -457,6 +494,7 @@ export function useLineupBuilder() {
     setSelectedPlayerIndex(null);
     setSelectedArrowId(null);
     setMatchImportStatus(`Opened ${save.name}.`);
+    trackFeature("saved_lineup_opened", { formation: save.formation });
   }
 
   function deleteLineup(id: string) {
@@ -467,6 +505,7 @@ export function useLineupBuilder() {
     }
     if (deleted) {
       setMatchImportStatus(`Deleted ${deleted.name}.`);
+      trackFeature("saved_lineup_deleted");
     }
   }
 
@@ -485,6 +524,7 @@ export function useLineupBuilder() {
     };
     setSavedLineups((current) => [duplicate, ...current].slice(0, 20));
     setMatchImportStatus(`Duplicated ${source.name}.`);
+    trackFeature("saved_lineup_duplicated");
   }
 
   function renameLineup(id: string, name: string) {
@@ -502,15 +542,18 @@ export function useLineupBuilder() {
       setLineupName(cleanName);
     }
     setMatchImportStatus(`Renamed lineup to ${cleanName}.`);
+    trackFeature("saved_lineup_renamed");
   }
 
   function addSubstitute() {
     setSubstitutes((current) => [...current, { name: "", number: "" }]);
     setEditorTab("substitutes");
+    trackFeature("substitute_added", { next_count: substitutes.length + 1 });
   }
 
   function removeSubstitute(index: number) {
     setSubstitutes((current) => current.filter((_, playerIndex) => playerIndex !== index));
+    trackFeature("substitute_removed", { next_count: Math.max(0, substitutes.length - 1) });
   }
 
   function importManualLineup(imported: ManualLineupImport) {
@@ -526,6 +569,31 @@ export function useLineupBuilder() {
     setMatchImportStatus(
       `Imported ${Math.min(imported.players.length, 11)} starters and ${imported.substitutes.length} substitutes.`,
     );
+    trackFeature("lineup_import_applied", {
+      has_formation: Boolean(imported.formation),
+      starters: Math.min(imported.players.length, 11),
+      substitutes: imported.substitutes.length,
+    });
+  }
+
+  function exportLineup() {
+    const startedAt = performance.now();
+    try {
+      exportPitchImage({ arrows, lineupName, pitchTheme, players, positionSet });
+      trackFeature("pitch_image_exported", {
+        arrows: arrows.length,
+        formation,
+        theme: pitchTheme,
+      });
+      trackProductEvent("pitch_export_completed", {
+        duration_ms: Math.round(performance.now() - startedAt),
+      });
+    } catch (error) {
+      trackProductEvent("pitch_export_failed", {
+        error_type: error instanceof Error ? error.name : "unknown",
+      });
+      throw error;
+    }
   }
 
   const hasLineupContent =
@@ -617,7 +685,7 @@ export function useLineupBuilder() {
     topBarProps: {
       canExport: hasLineupContent,
       onClearLineup: clearLineup,
-      onExportPitchImage: () => exportPitchImage({ arrows, lineupName, pitchTheme, players, positionSet }),
+      onExportPitchImage: exportLineup,
     },
     hasLineupContent,
     importManualLineup,

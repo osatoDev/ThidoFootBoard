@@ -1,4 +1,10 @@
-import { CircleHelp, Download, MoreHorizontal, RefreshCcw } from "lucide-react";
+import {
+  CircleHelp,
+  Download,
+  Lightbulb,
+  MoreHorizontal,
+  RefreshCcw,
+} from "lucide-react";
 import { useState } from "react";
 
 import styles from "./TopBar.module.css";
@@ -8,6 +14,7 @@ type TopBarProps = {
   onClearLineup: () => void;
   onExportPitchImage: () => void;
   onOpenHowItWorks: () => void;
+  onOpenSuggestion: () => void;
 };
 
 export function TopBar({
@@ -15,6 +22,7 @@ export function TopBar({
   onClearLineup,
   onExportPitchImage,
   onOpenHowItWorks,
+  onOpenSuggestion,
 }: TopBarProps) {
   const [isMoreOpen, setIsMoreOpen] = useState(false);
 
@@ -37,6 +45,10 @@ export function TopBar({
       </div>
 
       <div className={styles.topActions}>
+        <button className={styles.suggestionButton} onClick={onOpenSuggestion} type="button">
+          <Lightbulb size={17} aria-hidden="true" />
+          Suggest a feature
+        </button>
         {canExport ? (
           <>
             <button className={styles.primaryButton} onClick={onExportPitchImage} type="button">

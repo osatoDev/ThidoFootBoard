@@ -2,6 +2,7 @@ import { ArrowUpRight, ChevronDown, Copy, FolderOpen, Save, Trash2 } from "lucid
 import { type Dispatch, type KeyboardEvent, type SetStateAction, useEffect, useState } from "react";
 
 import type { SavedLineup } from "../../types";
+import { trackFeature } from "../../pendo";
 import styles from "./LibraryPanel.module.css";
 
 type LibraryPanelProps = {
@@ -30,7 +31,16 @@ export function LibraryPanel({
   setLineupName,
 }: LibraryPanelProps) {
   return (
-    <details className={styles.libraryPanel}>
+    <details
+      className={styles.libraryPanel}
+      onToggle={(event) => {
+        if (event.currentTarget.open) {
+          trackFeature("saved_lineup_library_opened", {
+            saved_count: savedLineups.length,
+          });
+        }
+      }}
+    >
       <summary className={styles.libraryHeader}>
         <div>
           <FolderOpen size={18} aria-hidden="true" />

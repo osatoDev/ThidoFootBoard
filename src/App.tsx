@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import styles from "./App.module.css";
 import { ConfirmDialog } from "./components/ConfirmDialog/ConfirmDialog";
 import { EditorPanel } from "./components/EditorPanel/EditorPanel";
+import { FeatureSuggestionModal } from "./components/FeatureSuggestionModal/FeatureSuggestionModal";
 import { HowItWorksModal } from "./components/HowItWorksModal/HowItWorksModal";
 import { LibraryPanel } from "./components/LibraryPanel/LibraryPanel";
 import { LineupImportModal, type LineupImportMethod } from "./components/LineupImportModal/LineupImportModal";
@@ -12,12 +13,14 @@ import { PitchPanel } from "./components/PitchPanel/PitchPanel";
 import { PricingModal } from "./components/PricingModal/PricingModal";
 import { TopBar } from "./components/TopBar/TopBar";
 import { useLineupBuilder } from "./hooks/useLineupBuilder";
+import { trackFeature, trackProductEvent } from "./pendo";
 import { useSubscription } from "./subscription";
 
 function App() {
   const [importMethod, setImportMethod] = useState<LineupImportMethod | null>(null);
   const [isImportSourceOpen, setIsImportSourceOpen] = useState(false);
   const [isClearConfirmOpen, setIsClearConfirmOpen] = useState(false);
+  const [isFeatureSuggestionOpen, setIsFeatureSuggestionOpen] = useState(false);
   const [isHowItWorksOpen, setIsHowItWorksOpen] = useState(false);
   const [isPricingOpen, setIsPricingOpen] = useState(false);
   const [pendingDeleteLineupId, setPendingDeleteLineupId] = useState<string | null>(null);
@@ -36,15 +39,27 @@ function App() {
     workspaceStatus,
   } = useLineupBuilder();
 
-  function completeStarter() {
+  useEffect(() => {
+    trackProductEvent("workspace_opened", {
+      has_existing_lineup: hasLineupContent,
+      plan: subscription.plan,
+    });
+  }, []);
+
+  function completeStarter(method: "blank" | "import" = "blank") {
     window.localStorage.setItem("thido-lineup-starter-complete", "true");
     setStarterDismissed(true);
+    if (!starterDismissed && !hasLineupContent) {
+      trackFeature("lineup_started", { method });
+    }
   }
 
   function selectImportMethod(nextMethod: LineupImportMethod) {
+    trackFeature("import_method_selected", { method: nextMethod });
     if ((nextMethod === "match" || nextMethod === "screenshot") && !subscription.hasPremiumAccess) {
       setIsImportSourceOpen(false);
       setIsPricingOpen(true);
+      trackFeature("premium_gate_viewed", { locked_feature: nextMethod });
       return;
     }
     setIsImportSourceOpen(false);
@@ -53,7 +68,22 @@ function App() {
 
   function applyImportedLineup(lineup: Parameters<typeof importManualLineup>[0]) {
     importManualLineup(lineup);
-    completeStarter();
+    completeStarter("import");
+  }
+
+  function openImport(source: "editor" | "starter") {
+    setIsImportSourceOpen(true);
+    trackFeature("import_options_opened", { source });
+  }
+
+  function openHowItWorks() {
+    setIsHowItWorksOpen(true);
+    trackFeature("how_it_works_opened");
+  }
+
+  function openFeatureSuggestion() {
+    setIsFeatureSuggestionOpen(true);
+    trackFeature("feature_suggestion_opened");
   }
 
   const pendingDeleteLineup = libraryPanelProps.savedLineups.find(
@@ -66,7 +96,8 @@ function App() {
       <TopBar
         {...topBarProps}
         onClearLineup={() => setIsClearConfirmOpen(true)}
-        onOpenHowItWorks={() => setIsHowItWorksOpen(true)}
+        onOpenHowItWorks={openHowItWorks}
+        onOpenSuggestion={openFeatureSuggestion}
       />
 
       <section className={`${styles.workspace} ${!workspaceStarted ? styles.workspaceEmpty : ""}`}>
@@ -74,7 +105,7 @@ function App() {
           {...pitchPanelProps}
           starterOverlay={
             !workspaceStarted ? (
-              <LineupStarter onOpenImport={() => setIsImportSourceOpen(true)} onStartBlank={completeStarter} />
+              <LineupStarter onOpenImport={() => openImport("starter")} onStartBlank={() => completeStarter("blank")} />
             ) : null
           }
         />
@@ -88,7 +119,7 @@ function App() {
                 onDeleteLineup={(id) => setPendingDeleteLineupId(id)}
               />
             }
-            onOpenImport={() => setIsImportSourceOpen(true)}
+            onOpenImport={() => openImport("editor")}
           />
         ) : null}
       </section>
@@ -118,6 +149,10 @@ function App() {
       ) : null}
 
       {isHowItWorksOpen ? <HowItWorksModal onClose={() => setIsHowItWorksOpen(false)} /> : null}
+
+      {isFeatureSuggestionOpen ? (
+        <FeatureSuggestionModal onClose={() => setIsFeatureSuggestionOpen(false)} />
+      ) : null}
 
       {importMethod ? (
         <LineupImportModal

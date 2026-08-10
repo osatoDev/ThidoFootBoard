@@ -19,6 +19,7 @@ import {
 } from "react";
 
 import { moreFormations, quickFormations } from "../../formations";
+import { trackFeature } from "../../pendo";
 import { shortName } from "../../playerUtils";
 import type {
   ArrowStyle,
@@ -149,7 +150,10 @@ export function PitchPanel({
         <div className={styles.arrowToolCluster} aria-label="Arrow tools">
           <button
             className={!isDrawingArrows ? styles.active : ""}
-            onClick={() => setIsDrawingArrows(false)}
+            onClick={() => {
+              setIsDrawingArrows(false);
+              trackFeature("selection_tool_activated");
+            }}
             type="button"
             aria-label="Select arrows and players"
             title="Select or move players"
@@ -159,7 +163,10 @@ export function PitchPanel({
           </button>
           <button
             className={isDrawingArrows ? styles.active : ""}
-            onClick={() => setIsDrawingArrows(true)}
+            onClick={() => {
+              setIsDrawingArrows(true);
+              trackFeature("arrow_tool_activated");
+            }}
             type="button"
             aria-label="Draw movement arrow"
             title="Draw arrows. Double-click a player to start an arrow from that player."
@@ -173,7 +180,12 @@ export function PitchPanel({
           aria-expanded={isSettingsOpen}
           aria-label="Toggle pitch settings"
           className={styles.settingsButton}
-          onClick={() => setIsSettingsOpen((current) => !current)}
+          onClick={() => {
+            if (!isSettingsOpen) {
+              trackFeature("pitch_settings_opened");
+            }
+            setIsSettingsOpen(!isSettingsOpen);
+          }}
           type="button"
         >
           <SlidersHorizontal size={18} aria-hidden="true" />
@@ -344,14 +356,24 @@ export function PitchPanel({
           >
             <button
               className={pitchTheme === "classic" ? styles.active : ""}
-              onClick={() => setPitchTheme("classic")}
+              onClick={() => {
+                setPitchTheme("classic");
+                if (pitchTheme !== "classic") {
+                  trackFeature("pitch_theme_changed", { theme: "classic" });
+                }
+              }}
               type="button"
             >
               Pitch
             </button>
             <button
               className={pitchTheme === "dark" ? styles.active : ""}
-              onClick={() => setPitchTheme("dark")}
+              onClick={() => {
+                setPitchTheme("dark");
+                if (pitchTheme !== "dark") {
+                  trackFeature("pitch_theme_changed", { theme: "dark" });
+                }
+              }}
               type="button"
             >
               Dark
@@ -360,7 +382,12 @@ export function PitchPanel({
 
           <button
             className={styles.darkToolButton}
-            onClick={() => setPlayerBadges((current) => !current)}
+            onClick={() => {
+              trackFeature("player_marker_style_changed", {
+                style: playerBadges ? "icons" : "numbers",
+              });
+              setPlayerBadges(!playerBadges);
+            }}
             type="button"
           >
             <UserRound size={18} aria-hidden="true" />
@@ -374,7 +401,12 @@ export function PitchPanel({
               <button
                 className={arrowColor === color ? styles.active : ""}
                 key={color}
-                onClick={() => setArrowColor(color)}
+                onClick={() => {
+                  setArrowColor(color);
+                  if (color !== arrowColor) {
+                    trackFeature("arrow_color_changed");
+                  }
+                }}
                 style={{ "--arrow-color": color } as CSSProperties}
                 type="button"
                 aria-label={`Use ${color} arrows`}
@@ -389,14 +421,24 @@ export function PitchPanel({
           >
             <button
               className={arrowStyle === "solid" ? styles.active : ""}
-              onClick={() => setArrowStyle("solid")}
+              onClick={() => {
+                setArrowStyle("solid");
+                if (arrowStyle !== "solid") {
+                  trackFeature("arrow_style_changed", { style: "solid" });
+                }
+              }}
               type="button"
             >
               Solid
             </button>
             <button
               className={arrowStyle === "dashed" ? styles.active : ""}
-              onClick={() => setArrowStyle("dashed")}
+              onClick={() => {
+                setArrowStyle("dashed");
+                if (arrowStyle !== "dashed") {
+                  trackFeature("arrow_style_changed", { style: "dashed" });
+                }
+              }}
               type="button"
             >
               Dashed
